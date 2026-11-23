@@ -1,0 +1,2751 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-[#F5F5F7] text-[#1D1D1F]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShoeClean Pro - POS, CRM, Payroll & Accounting</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Inter', 'sans-serif'],
+            mono: ['SF Mono', 'JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            apple: {
+              bg: '#F5F5F7',
+              card: '#FFFFFF',
+              text: '#1D1D1F',
+              muted: '#86868B',
+              blue: '#0071E3',
+              blueHover: '#0077ED',
+              green: '#34C759',
+              red: '#FF3B30',
+              amber: '#FF9500',
+              purple: '#AF52DE',
+              border: 'rgba(0, 0, 0, 0.06)'
+            }
+          },
+          boxShadow: {
+            'apple-sm': '0 2px 10px rgba(0, 0, 0, 0.03)',
+            'apple-md': '0 8px 30px rgba(0, 0, 0, 0.04)',
+            'apple-lg': '0 20px 50px rgba(0, 0, 0, 0.08)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons, Alpine.js, Chart.js & html2pdf.js -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      background-color: #F5F5F7;
+      color: #1D1D1F;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .frosted-glass {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .apple-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
+    }
+    .apple-input {
+      background: #F5F5F7;
+      border: 1px solid transparent;
+      color: #1D1D1F;
+      transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+    .apple-input:focus {
+      background: #FFFFFF;
+      border-color: #0071E3;
+      box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
+      outline: none;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.14);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.25);
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shake 0.35s ease-in-out;
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-receipt, #printable-receipt *, #printable-payslip, #printable-payslip * { visibility: visible; }
+      #printable-receipt, #printable-payslip { position: absolute; left: 0; top: 0; width: 100%; color: #000; background: #fff; }
+    }
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+<body class="h-full font-sans antialiased selection:bg-[#0071E3] selection:text-white" x-data="posApp()" x-init="initApp()">
+
+  <!-- ==================== APPLE-STYLE LOGIN SCREEN ==================== -->
+  <div x-show="!isAuthenticated" x-cloak class="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden bg-[#F5F5F7]">
+    <!-- Subtle Ambient Orbs -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-[#0071E3]/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-[#34C759]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-[400px] z-10 space-y-6">
+      <!-- Brand Header -->
+      <div class="text-center space-y-3">
+        <div class="w-16 h-16 mx-auto rounded-[22px] bg-white shadow-apple-md border border-black/[0.06] flex items-center justify-center">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-b from-[#0077ED] to-[#0066CC] text-white flex items-center justify-center shadow-sm">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-[#1D1D1F]">ShoeClean<span class="text-[#0071E3]">POS</span></h1>
+          <p class="text-[13px] text-[#86868B] mt-0.5">Masuk ke Workspace Workshop & Manajemen</p>
+        </div>
+      </div>
+
+      <!-- Login Card -->
+      <form @submit.prevent="handleLogin()" :class="loginShake ? 'animate-shake' : ''" class="apple-card rounded-[28px] p-7 space-y-5 shadow-apple-lg">
+        <!-- Role Segmented Control -->
+        <div class="bg-[#F5F5F7] p-1 rounded-full grid grid-cols-2 text-xs font-semibold">
+          <button type="button" @click="selectLoginRole('owner')" :class="loginRoleHint === 'owner' ? 'bg-white text-[#1D1D1F] shadow-sm' : 'text-[#86868B] hover:text-[#1D1D1F]'" class="py-2 rounded-full transition-all duration-200 flex items-center justify-center gap-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#0071E3]"></i> Owner Access
+          </button>
+          <button type="button" @click="selectLoginRole('team')" :class="loginRoleHint === 'team' ? 'bg-white text-[#1D1D1F] shadow-sm' : 'text-[#86868B] hover:text-[#1D1D1F]'" class="py-2 rounded-full transition-all duration-200 flex items-center justify-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-[#34C759]"></i> Team Access
+          </button>
+        </div>
+
+        <div class="space-y-3.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-[#86868B] uppercase tracking-wider mb-1.5 ml-1">Username</label>
+            <div class="relative">
+              <input type="text" x-model="loginForm.username" autocomplete="username" placeholder="Masukkan username..." class="apple-input w-full rounded-2xl pl-10 pr-4 py-3 text-sm font-medium">
+              <i data-lucide="user" class="w-4 h-4 text-[#86868B] absolute left-3.5 top-3.5"></i>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-[#86868B] uppercase tracking-wider mb-1.5 ml-1">Password</label>
+            <div class="relative">
+              <input :type="showLoginPassword ? 'text' : 'password'" x-model="loginForm.password" autocomplete="current-password" placeholder="••••••••••" class="apple-input w-full rounded-2xl pl-10 pr-11 py-3 text-sm font-medium">
+              <i data-lucide="lock" class="w-4 h-4 text-[#86868B] absolute left-3.5 top-3.5"></i>
+              <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute right-3.5 top-3 text-[#86868B] hover:text-[#1D1D1F] p-0.5 transition">
+                <i :data-lucide="showLoginPassword ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="loginError" x-transition class="p-3 rounded-2xl bg-[#FF3B30]/10 border border-[#FF3B30]/20 text-[#FF3B30] text-xs font-medium flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+          <span x-text="loginError"></span>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-[#0071E3] hover:bg-[#0077ED] active:scale-[0.99] text-white font-semibold rounded-full text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+          <span>Masuk Sekarang</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+
+        <div class="pt-2 border-t border-black/[0.05] text-center">
+          <p class="text-[11px] text-[#86868B]" x-text="loginRoleHint === 'owner' ? 'Akses penuh: POS, Pipeline, CRM, Payroll, Akuntansi & Master HPP' : 'Akses operasional: Kasir, Pelunasan, Mutasi Kas, Pipeline & CRM'"></p>
+        </div>
+      </form>
+
+      <p class="text-center text-[11px] text-[#86868B]">ShoeClean Pro v3.1 • Protected Local Workspace</p>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN WORKSPACE APP ==================== -->
+  <div x-show="isAuthenticated" x-cloak class="flex flex-col lg:flex-row h-screen overflow-hidden">
+    <!-- SIDEBAR NAVIGATION (APPLE FROSTED GLASS) -->
+    <aside class="w-full lg:w-72 frosted-glass border-b lg:border-b-0 lg:border-r border-black/[0.06] flex flex-col justify-between shrink-0 z-20">
+      <div>
+        <!-- Brand Header & Active User Pill -->
+        <div class="p-5 border-b border-black/[0.06] flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-b from-[#0077ED] to-[#0066CC] text-white flex items-center justify-center shadow-sm">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h1 class="font-bold text-base tracking-tight text-[#1D1D1F] leading-none">ShoeClean<span class="text-[#0071E3]">POS</span></h1>
+              <span class="text-[11px] text-[#86868B] font-medium">Workshop & Payroll v3.1</span>
+            </div>
+          </div>
+
+          <span :class="userRole === 'owner' ? 'bg-[#0071E3]/10 text-[#0071E3]' : 'bg-[#34C759]/15 text-[#248A3D]'" class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+            <span x-text="userRole === 'owner' ? 'Owner' : 'Team'"></span>
+          </span>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="p-3 lg:p-4 flex lg:flex-col gap-1.5 overflow-x-auto">
+          <button @click="switchTab('pos')" :class="currentTab === 'pos' ? 'bg-[#0071E3] text-white shadow-sm' : 'text-[#515154] hover:bg-black/[0.04] hover:text-[#1D1D1F]'" class="shrink-0 lg:w-full flex items-center space-x-3 px-4 py-2.5 rounded-2xl font-medium text-[13px] transition-all">
+            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+            <span>Kasir & Order Baru</span>
+          </button>
+
+          <button @click="switchTab('kanban')" :class="currentTab === 'kanban' ? 'bg-[#0071E3] text-white shadow-sm' : 'text-[#515154] hover:bg-black/[0.04] hover:text-[#1D1D1F]'" class="shrink-0 lg:w-full flex items-center space-x-3 px-4 py-2.5 rounded-2xl font-medium text-[13px] transition-all">
+            <i data-lucide="kanban" class="w-4 h-4"></i>
+            <span>Workshop Pipeline</span>
+            <span x-show="activeOrdersCount > 0" :class="currentTab === 'kanban' ? 'bg-white text-[#0071E3]' : 'bg-[#0071E3]/10 text-[#0071E3]'" class="ml-auto px-2 py-0.5 text-[11px] font-bold rounded-full" x-text="activeOrdersCount"></span>
+          </button>
+
+          <button @click="switchTab('crm')" :class="currentTab === 'crm' ? 'bg-[#0071E3] text-white shadow-sm' : 'text-[#515154] hover:bg-black/[0.04] hover:text-[#1D1D1F]'" class="shrink-0 lg:w-full flex items-center space-x-3 px-4 py-2.5 rounded-2xl font-medium text-[13px] transition-all">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span>Database CRM</span>
+          </button>
+
+          <!-- OWNER ONLY TABS -->
+          <template x-if="userRole === 'owner'">
+            <div class="flex lg:flex-col gap-1.5">
+              <button @click="switchTab('payroll')" :class="currentTab === 'payroll' ? 'bg-[#0071E3] text-white shadow-sm' : 'text-[#515154] hover:bg-black/[0.04] hover:text-[#1D1D1F]'" class="shrink-0 lg:w-full flex items-center space-x-3 px-4 py-2.5 rounded-2xl font-medium text-[13px] transition-all">
+                <i data-lucide="wallet" class="w-4 h-4"></i>
+                <span>SDM & Penggajian</span>
+              </button>
+
+              <button @click="switchTab('finance')" :class="currentTab === 'finance' ? 'bg-[#0071E3] text-white shadow-sm' : 'text-[#515154] hover:bg-black/[0.04] hover:text-[#1D1D1F]'" class="shrink-0 lg:w-full flex items-center space-x-3 px-4 py-2.5 rounded-2xl font-medium text-[13px] transition-all">
+                <i data-lucide="line-chart" class="w-4 h-4"></i>
+                <span>Laporan Laba Rugi</span>
+              </button>
+
+              <button @click="switchTab('settings')" :class="currentTab === 'settings' ? 'bg-[#0071E3] text-white shadow-sm' : 'text-[#515154] hover:bg-black/[0.04] hover:text-[#1D1D1F]'" class="shrink-0 lg:w-full flex items-center space-x-3 px-4 py-2.5 rounded-2xl font-medium text-[13px] transition-all">
+                <i data-lucide="sliders" class="w-4 h-4"></i>
+                <span>Master Treatment & HPP</span>
+              </button>
+            </div>
+          </template>
+        </nav>
+      </div>
+
+      <!-- DATA MANAGEMENT & ACCOUNT FOOTER -->
+      <div class="hidden lg:block p-4 border-t border-black/[0.06] space-y-3">
+        <div class="flex items-center justify-between text-[11px] text-[#86868B] px-1">
+          <span>Local Storage</span>
+          <span class="text-[#248A3D] font-medium flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#34C759]"></span> Tersinkron</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button @click="exportData()" class="px-3 py-2 bg-[#F5F5F7] hover:bg-black/[0.06] text-[#1D1D1F] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-[#0071E3]"></i> Export
+          </button>
+          <label class="px-3 py-2 bg-[#F5F5F7] hover:bg-black/[0.06] text-[#1D1D1F] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition">
+            <i data-lucide="upload" class="w-3.5 h-3.5 text-[#0071E3]"></i> Import
+            <input type="file" @change="importData($event)" accept=".json" class="hidden">
+          </label>
+        </div>
+        <button @click="logout()" class="w-full px-3 py-2 bg-[#FF3B30]/10 hover:bg-[#FF3B30]/15 text-[#FF3B30] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Keluar Akun (<span x-text="currentUserName"></span>)
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col overflow-y-auto bg-[#F5F5F7]">
+
+      <!-- MODULE 1: POS & ORDER MANAGEMENT (+ PELUNASAN PIUTANG & MUTASI KAS) -->
+      <div x-show="currentTab === 'pos'" x-transition.opacity.duration.200ms class="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto w-full">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-black/[0.06] pb-5">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-[#1D1D1F]">Kasir & Penerimaan Sepatu</h2>
+            <p class="text-[13px] text-[#86868B] mt-0.5">Input order baru, pelunasan piutang customer, dan pencatatan mutasi kas harian</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="apple-card px-4 py-2.5 rounded-2xl text-right">
+              <span class="text-[11px] text-[#86868B] block font-medium">No. Order Berikutnya</span>
+              <span class="text-base font-mono font-bold text-[#0071E3]" x-text="'#ORD-' + String(nextOrderNumber).padStart(4, '0')"></span>
+            </div>
+            <button @click="logout()" class="lg:hidden p-2.5 bg-[#FF3B30]/10 text-[#FF3B30] rounded-2xl" title="Keluar">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- LEFT FORM: PELANGGAN & DAFTAR ITEM SEPATU -->
+          <div class="lg:col-span-7 space-y-6">
+            
+            <!-- PELANGGAN SEARCH / INPUT -->
+            <div class="apple-card p-6 rounded-3xl space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-black/[0.06] pb-4">
+                <h3 class="text-sm font-bold text-[#1D1D1F] flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-xl bg-[#0071E3]/10 text-[#0071E3] flex items-center justify-center">
+                    <i data-lucide="user-check" class="w-4 h-4"></i>
+                  </span>
+                  Informasi Pelanggan
+                </h3>
+                <div class="flex bg-[#F5F5F7] p-1 rounded-full text-xs font-semibold">
+                  <button type="button" @click="setCustomerMode('existing')" :class="customerMode === 'existing' ? 'bg-white text-[#1D1D1F] shadow-sm' : 'text-[#86868B] hover:text-[#1D1D1F]'" class="px-3.5 py-1.5 rounded-full transition flex items-center gap-1.5">
+                    <i data-lucide="users" class="w-3.5 h-3.5"></i> Pelanggan CRM
+                  </button>
+                  <button type="button" @click="setCustomerMode('new')" :class="customerMode === 'new' ? 'bg-white text-[#1D1D1F] shadow-sm' : 'text-[#86868B] hover:text-[#1D1D1F]'" class="px-3.5 py-1.5 rounded-full transition flex items-center gap-1.5">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Pelanggan Baru
+                  </button>
+                </div>
+              </div>
+
+              <div x-show="customerMode === 'existing'" class="space-y-2">
+                <label class="block text-xs font-semibold text-[#0071E3]">Pilih dari Database CRM:</label>
+                <select @change="selectCustomerFromCRM($event.target.value)" class="apple-input w-full rounded-2xl px-4 py-3 text-sm font-medium">
+                  <option value="">-- Pilih Pelanggan Terdaftar (<span x-text="customers.length"></span>) --</option>
+                  <template x-for="c in customers" :key="c.phone">
+                    <option :value="c.phone" x-text="c.name + ' (' + c.phone + ') - ' + c.tag"></option>
+                  </template>
+                </select>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-[#86868B] mb-1.5">No. WhatsApp (Primary Key)</label>
+                  <div class="relative">
+                    <input type="text" x-model="orderForm.customerPhone" @input="searchCustomerByPhone()" placeholder="081234567890" class="apple-input w-full rounded-2xl px-4 py-2.5 text-sm font-mono">
+                    <span x-show="foundCustomer" class="absolute right-3 top-2.5 text-[11px] font-semibold bg-[#34C759]/15 text-[#248A3D] px-2.5 py-0.5 rounded-full">Member Lama</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-[#86868B] mb-1.5">Nama Lengkap</label>
+                  <input type="text" x-model="orderForm.customerName" placeholder="Contoh: Budi Santoso" class="apple-input w-full rounded-2xl px-4 py-2.5 text-sm">
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-xs font-medium text-[#86868B] mb-1.5">Alamat Singkat</label>
+                  <input type="text" x-model="orderForm.customerAddress" placeholder="Jl. Merdeka No. 45, Bandung" class="apple-input w-full rounded-2xl px-4 py-2.5 text-sm">
+                </div>
+              </div>
+            </div>
+
+            <!-- MULTI-ITEM SEPATU CONTAINER -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between px-1">
+                <h3 class="text-sm font-bold text-[#1D1D1F] flex items-center gap-2">
+                  <i data-lucide="footprints" class="w-4 h-4 text-[#0071E3]"></i> Daftar Sepatu (<span x-text="orderForm.items.length"></span> Item)
+                </h3>
+                <button @click="addShoeItem()" type="button" class="px-4 py-2 bg-[#0071E3]/10 hover:bg-[#0071E3]/15 text-[#0071E3] rounded-full text-xs font-semibold flex items-center gap-1.5 transition">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah Sepatu
+                </button>
+              </div>
+
+              <template x-for="(shoe, index) in orderForm.items" :key="index">
+                <div class="apple-card p-6 rounded-3xl space-y-5 relative">
+                  <div class="flex items-center justify-between border-b border-black/[0.06] pb-3">
+                    <span class="text-xs font-bold text-[#0071E3] uppercase tracking-wider" x-text="'Sepatu #' + (index + 1)"></span>
+                    <button x-show="orderForm.items.length > 1" @click="removeShoeItem(index)" type="button" class="text-[#FF3B30] hover:underline text-xs font-semibold flex items-center gap-1">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Item
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-[#86868B] mb-1">Brand</label>
+                      <input type="text" x-model="shoe.shoeBrand" placeholder="Nike / Adidas" class="apple-input w-full rounded-xl px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-[#86868B] mb-1">Seri / Model</label>
+                      <input type="text" x-model="shoe.shoeModel" placeholder="Air Jordan 1" class="apple-input w-full rounded-xl px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-[#86868B] mb-1">Warna Utama</label>
+                      <input type="text" x-model="shoe.shoeColor" placeholder="White / Red" class="apple-input w-full rounded-xl px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-[#86868B] mb-1">Ukuran (EU)</label>
+                      <input type="text" x-model="shoe.shoeSize" placeholder="42" class="apple-input w-full rounded-xl px-3 py-2 text-sm font-mono">
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-[#FF9500] mb-2">Checklist Kondisi Fisik Sepatu:</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <template x-for="item in inspectionChecklist" :key="item.id">
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-[#F5F5F7] rounded-xl cursor-pointer hover:bg-black/[0.05] transition">
+                          <input type="checkbox" :value="item.label" x-model="shoe.conditions" class="rounded-md border-black/20 text-[#0071E3] focus:ring-[#0071E3]">
+                          <span class="text-xs font-medium text-[#1D1D1F]" x-text="item.label"></span>
+                        </label>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div class="pt-3 border-t border-black/[0.06] space-y-2.5">
+                    <label class="block text-xs font-semibold text-[#1D1D1F]">Pilih Layanan Treatment:</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                      <template x-for="service in availableServices" :key="service.id">
+                        <div @click="toggleServiceForItem(index, service)" :class="isServiceSelectedForItem(index, service.id) ? 'border-[#0071E3] bg-[#0071E3]/[0.05] ring-1 ring-[#0071E3]' : 'border-black/[0.06] bg-[#F5F5F7] hover:bg-black/[0.04]'" class="p-3 border rounded-2xl cursor-pointer flex justify-between items-center transition-all">
+                          <div>
+                            <div class="text-xs font-bold text-[#1D1D1F]" x-text="service.name"></div>
+                            <div class="text-[11px] text-[#248A3D] font-mono mt-0.5" x-text="'Komisi: ' + formatRupiah(service.commissionFee)"></div>
+                          </div>
+                          <span class="text-xs font-bold font-mono text-[#0071E3]" x-text="formatRupiah(service.price)"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-black/[0.06]">
+                    <div>
+                      <label class="block text-xs font-semibold text-[#1D1D1F] mb-1.5">Assign Teknisi Penanggung Jawab</label>
+                      <select x-model="shoe.technicianId" class="apple-input w-full rounded-xl px-3 py-2 text-xs font-medium">
+                        <option value="">-- Pilih Teknisi (Opsional) --</option>
+                        <template x-for="tech in technicians" :key="tech.id">
+                          <option :value="tech.id" x-text="tech.name + ' (' + tech.role + ')'"></option>
+                        </template>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-[#1D1D1F] mb-1.5">Foto Kondisi Awal (Before)</label>
+                      <div class="flex items-center gap-3">
+                        <input type="file" accept="image/*" @change="handleItemBeforeImageUpload(index, $event)" class="text-xs text-[#86868B] file:mr-3 file:py-1.5 file:px-3.5 file:rounded-full file:border-0 file:bg-[#0071E3]/10 file:text-[#0071E3] file:font-semibold hover:file:bg-[#0071E3]/15 cursor-pointer">
+                        <template x-if="shoe.photoBefore">
+                          <img :src="shoe.photoBefore" class="w-11 h-11 object-cover rounded-xl border border-black/10 shadow-sm">
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+          </div>
+
+          <!-- RIGHT FORM: RINGKASAN & SKEMA KALKULASI -->
+          <div class="lg:col-span-5 space-y-6">
+            <div class="apple-card p-6 rounded-3xl space-y-5 sticky top-6">
+              <h3 class="text-sm font-bold text-[#1D1D1F] flex items-center gap-2 border-b border-black/[0.06] pb-3.5">
+                <span class="w-7 h-7 rounded-xl bg-[#0071E3]/10 text-[#0071E3] flex items-center justify-center">
+                  <i data-lucide="receipt" class="w-4 h-4"></i>
+                </span>
+                Ringkasan Pesanan
+              </h3>
+
+              <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                <template x-for="(shoe, i) in orderForm.items" :key="i">
+                  <div class="p-3.5 bg-[#F5F5F7] rounded-2xl space-y-1.5">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-[#1D1D1F]" x-text="(shoe.shoeBrand || 'Sepatu') + ' ' + (shoe.shoeModel || '#' + (i+1))"></span>
+                      <span class="text-[11px] text-[#0071E3] font-semibold" x-text="shoe.selectedServices.length + ' Layanan'"></span>
+                    </div>
+                    <template x-for="svc in shoe.selectedServices" :key="svc.id">
+                      <div class="flex justify-between text-xs text-[#515154] pl-2.5 border-l-2 border-[#0071E3]/30">
+                        <span x-text="svc.name"></span>
+                        <span class="font-mono" x-text="formatRupiah(svc.price)"></span>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+
+              <div class="pt-4 border-t border-black/[0.06] space-y-3.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-[#515154]">Diskon Total (Rp)</span>
+                  <input type="number" x-model.number="orderForm.discount" placeholder="0" class="apple-input w-36 rounded-xl px-3 py-1.5 text-right text-xs font-mono font-semibold">
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-[#515154]">Metode Pembayaran</span>
+                  <select x-model="orderForm.paymentMethod" class="apple-input rounded-xl px-3 py-1.5 text-xs font-semibold">
+                    <option value="Cash">Cash / Tunai</option>
+                    <option value="QRIS">QRIS</option>
+                    <option value="Transfer Bank">Transfer Bank</option>
+                    <option value="E-Wallet">E-Wallet</option>
+                  </select>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-[#515154]">DP / Pelunasan</span>
+                  <div class="flex items-center space-x-2">
+                    <input type="number" x-model.number="orderForm.dpAmount" placeholder="Nominal DP" class="apple-input w-28 rounded-xl px-3 py-1.5 text-right text-xs font-mono font-semibold">
+                    <button type="button" @click="orderForm.dpAmount = calculateTotal()" class="px-3 py-1.5 bg-[#34C759]/15 hover:bg-[#34C759]/25 text-[#248A3D] font-bold text-xs rounded-full transition">Lunas</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-[#F5F5F7] p-4 rounded-2xl space-y-2">
+                <div class="flex justify-between text-xs text-[#86868B]">
+                  <span>Subtotal All Items</span>
+                  <span class="font-mono" x-text="formatRupiah(calculateSubtotal())"></span>
+                </div>
+                <div x-show="orderForm.discount > 0" class="flex justify-between text-xs text-[#248A3D] font-medium">
+                  <span>Potongan Diskon</span>
+                  <span class="font-mono" x-text="'- ' + formatRupiah(orderForm.discount)"></span>
+                </div>
+                <div class="flex justify-between text-base font-bold text-[#1D1D1F] pt-2 border-t border-black/[0.06]">
+                  <span>Total Bayar</span>
+                  <span class="text-[#0071E3] font-mono" x-text="formatRupiah(calculateTotal())"></span>
+                </div>
+                <div class="flex justify-between text-xs font-semibold text-[#FF9500]">
+                  <span>Sisa Pelunasan</span>
+                  <span class="font-mono" x-text="formatRupiah(calculateRemaining())"></span>
+                </div>
+              </div>
+
+              <button @click="submitOrder()" class="w-full py-3.5 bg-[#0071E3] hover:bg-[#0077ED] active:scale-[0.99] text-white font-semibold rounded-full shadow-sm flex items-center justify-center gap-2 text-sm transition-all">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i> Simpan Order & Cetak Nota
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== OPERASIONAL KASIR: PIUTANG & TRANSAKSI KAS ==================== -->
+        <div class="pt-4 border-t border-black/[0.06] space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-bold tracking-tight text-[#1D1D1F]">Pelunasan Piutang & Mutasi Kas Harian</h3>
+              <p class="text-xs text-[#86868B]">Kelola pelunasan order customer dan pencatatan kas masuk/keluar operasional langsung dari kasir</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- DAFTAR PIUTANG & ACTION PELUNASAN (KIRI) -->
+            <div class="lg:col-span-7">
+              <div class="apple-card p-6 rounded-3xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-black/[0.06] pb-3.5">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-xl bg-[#FF9500]/15 text-[#FF9500] flex items-center justify-center">
+                      <i data-lucide="clock" class="w-4 h-4"></i>
+                    </span>
+                    <div>
+                      <h3 class="text-sm font-bold text-[#1D1D1F]">Daftar Piutang & Action Pelunasan</h3>
+                      <span class="text-[11px] text-[#86868B]" x-text="unpaidOrdersList.length + ' nota belum lunas'"></span>
+                    </div>
+                  </div>
+                  <div class="relative w-full sm:w-60">
+                    <input type="text" x-model="unpaidSearch" placeholder="Cari No. Order / Nama..." class="apple-input w-full rounded-full pl-9 pr-3 py-1.5 text-xs">
+                    <i data-lucide="search" class="w-3.5 h-3.5 text-[#86868B] absolute left-3 top-2"></i>
+                  </div>
+                </div>
+
+                <div class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
+                  <template x-for="unpaid in unpaidOrdersList" :key="unpaid.id">
+                    <div class="p-4 bg-[#F5F5F7] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+                      <div>
+                        <div class="font-bold text-[#1D1D1F] text-sm" x-text="unpaid.customerName + ' (' + unpaid.id + ')'"></div>
+                        <div class="text-[#86868B]" x-text="unpaid.shoeBrand + ' ' + unpaid.shoeModel"></div>
+                        <div class="text-[11px] font-mono font-bold text-[#FF9500] mt-1" x-text="'Sisa Piutang: ' + formatRupiah(unpaid.remaining)"></div>
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        <select x-model="unpaidPayMethod[unpaid.id]" class="bg-white border border-black/10 rounded-full px-3 py-1.5 text-xs font-medium text-[#1D1D1F]">
+                          <option value="Cash">Cash</option>
+                          <option value="QRIS">QRIS</option>
+                          <option value="Transfer Bank">Transfer Bank</option>
+                        </select>
+                        <button @click="payOffDebt(unpaid.id)" class="px-4 py-1.5 bg-[#34C759] hover:bg-[#2DB84D] text-white font-semibold rounded-full text-xs transition">
+                          Pelunasan
+                        </button>
+                      </div>
+                    </div>
+                  </template>
+                  <template x-if="unpaidOrdersList.length === 0">
+                    <div class="text-center py-10 text-xs text-[#86868B]">
+                      <span x-show="!unpaidSearch">Tidak ada piutang menggantung. Semua order lunas!</span>
+                      <span x-show="unpaidSearch">Tidak ditemukan piutang sesuai "<span x-text="unpaidSearch"></span>".</span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- INPUT TRANSAKSI KAS & MUTASI + JURNAL (KANAN) -->
+            <div class="lg:col-span-5">
+              <div class="apple-card p-6 rounded-3xl space-y-4">
+                <h3 class="text-sm font-bold text-[#1D1D1F] flex items-center gap-2 border-b border-black/[0.06] pb-3.5">
+                  <span class="w-7 h-7 rounded-xl bg-[#0071E3]/10 text-[#0071E3] flex items-center justify-center">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                  </span>
+                  Input Transaksi Kas & Mutasi
+                </h3>
+
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-medium text-[#86868B] mb-1">Jenis Transaksi</label>
+                    <select x-model="ledgerForm.type" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-xs font-medium">
+                      <option value="EXPENSE">Pengeluaran Operasional (OPEX)</option>
+                      <option value="TRANSFER">Transfer / Pemindahan Kas ke Non-Cash / Bank</option>
+                      <option value="WITHDRAWAL">Pengambilan Owner / Withdrawal (Prive)</option>
+                      <option value="PAYROLL">Penggajian Staf / Teknisi</option>
+                      <option value="INCOME">Pemasukan Lain-lain</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-medium text-[#86868B] mb-1">Keterangan / Deskripsi</label>
+                    <input type="text" x-model="ledgerForm.description" placeholder="Contoh: Setor Tunai ke Bank / Beli Sabun" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-xs">
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-[#86868B] mb-1">Nominal (Rp)</label>
+                      <input type="number" x-model.number="ledgerForm.amount" placeholder="50000" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-xs font-mono">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-[#86868B] mb-1" x-text="ledgerForm.type === 'TRANSFER' ? 'Dari Akun (Sumber)' : 'Sumber Uang'"></label>
+                      <select x-model="ledgerForm.method" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-xs font-medium">
+                        <option value="Cash">Laci Kasir (Cash)</option>
+                        <option value="Bank/QRIS">Rekening Bank / Non-Cash</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div x-show="ledgerForm.type === 'EXPENSE' || ledgerForm.type === 'WITHDRAWAL' || ledgerForm.type === 'PAYROLL' || ledgerForm.type === 'TRANSFER'" class="p-3.5 bg-[#FF9500]/10 border border-[#FF9500]/20 rounded-2xl space-y-2">
+                    <div class="flex items-center justify-between">
+                      <label class="block text-xs font-semibold text-[#C97600]">⚠️ Upload Bukti / Slip Fisik</label>
+                      <span class="text-[10px] font-semibold text-[#C97600]">*Required</span>
+                    </div>
+                    <input type="file" accept="image/*" @change="handleLedgerProofUpload($event)" class="text-xs text-[#86868B] file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:bg-white file:text-[#0071E3] file:font-semibold cursor-pointer w-full">
+                    <template x-if="ledgerForm.proofImage">
+                      <div class="mt-2 flex items-center gap-2">
+                        <img :src="ledgerForm.proofImage" class="w-11 h-11 object-cover rounded-xl border border-black/10">
+                        <span class="text-[11px] font-semibold text-[#248A3D]">Bukti berhasil diunggah!</span>
+                      </div>
+                    </template>
+                  </div>
+
+                  <button @click="addLedgerEntry()" class="w-full py-2.5 bg-[#0071E3] hover:bg-[#0077ED] text-white font-semibold rounded-full text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Catat Transaksi
+                  </button>
+                </div>
+
+                <!-- JURNAL ARUS KAS -->
+                <div class="pt-4 border-t border-black/[0.06] space-y-2">
+                  <span class="text-xs font-bold text-[#1D1D1F] block">Jurnal Mutasi Kas Terakhir</span>
+                  <div class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs">
+                    <template x-for="entry in ledger" :key="entry.id">
+                      <div class="p-3 bg-[#F5F5F7] rounded-2xl flex justify-between items-center">
+                        <div class="space-y-0.5">
+                          <div class="font-semibold text-[#1D1D1F] flex items-center gap-1.5">
+                            <span x-text="entry.description"></span>
+                            <template x-if="entry.proofImage">
+                              <button @click="previewImageModal(entry.proofImage)" class="text-[#0071E3] hover:underline text-[11px]">(Nota)</button>
+                            </template>
+                          </div>
+                          <span class="text-[10px] text-[#86868B] block" x-text="entry.method + ' • ' + formatShortDate(entry.createdAt) + ' • ' + entry.type"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span :class="entry.type === 'TRANSFER' ? 'text-[#0071E3]' : ((entry.type === 'EXPENSE' || entry.type === 'WITHDRAWAL' || entry.type === 'PAYROLL') ? 'text-[#FF3B30]' : 'text-[#248A3D]')" class="font-bold font-mono" x-text="(entry.type === 'TRANSFER' ? '↔ ' : ((entry.type === 'EXPENSE' || entry.type === 'WITHDRAWAL' || entry.type === 'PAYROLL') ? '- ' : '+ ')) + formatRupiah(entry.amount)"></span>
+                          <button @click="deleteLedgerEntry(entry.id)" class="text-[#86868B] hover:text-[#FF3B30] p-1" title="Hapus Transaksi">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 2: WORKFLOW & KANBAN TRACKING -->
+      <div x-show="currentTab === 'kanban'" x-transition.opacity.duration.200ms class="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.06] pb-5">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-[#1D1D1F]">Workshop & Photo Pipeline</h2>
+            <p class="text-[13px] text-[#86868B] mt-0.5">Pantau progres pengerjaan sepatu dan lampirkan dokumentasi After Treatment</p>
+          </div>
+          <div class="relative w-full md:w-72">
+            <input type="text" x-model="kanbanSearch" placeholder="Cari Nota, Nama, atau Sepatu..." class="apple-card w-full rounded-full pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#0071E3]">
+            <i data-lucide="search" class="w-4 h-4 text-[#86868B] absolute left-3.5 top-2.5"></i>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 overflow-x-auto pb-4">
+          <template x-for="status in statusList" :key="status">
+            <div class="bg-white/70 border border-black/[0.06] rounded-3xl p-3.5 flex flex-col h-[700px] shadow-apple-sm">
+              <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-black/[0.06] px-1">
+                <span class="font-bold text-[11px] text-[#515154] uppercase tracking-wider truncate" x-text="status"></span>
+                <span class="px-2 py-0.5 text-[11px] font-bold bg-[#F5F5F7] text-[#1D1D1F] rounded-full" x-text="getOrdersByStatus(status).length"></span>
+              </div>
+
+              <div class="flex-1 overflow-y-auto space-y-3 pr-0.5">
+                <template x-for="order in getOrdersByStatus(status)" :key="order.id">
+                  <div class="bg-white border border-black/[0.06] hover:border-[#0071E3]/40 p-3.5 rounded-2xl space-y-3 transition-all shadow-apple-sm">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-mono font-bold text-[#0071E3]" x-text="order.id"></span>
+                      <div class="flex items-center gap-1">
+                        <span class="text-[11px] text-[#86868B]" x-text="formatShortDate(order.createdAt)"></span>
+                        <button @click="deleteOrder(order.id)" class="text-[#86868B] hover:text-[#FF3B30] p-1 transition" title="Hapus Order">
+                          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="text-sm font-bold text-[#1D1D1F]" x-text="order.customerName"></div>
+                      <div class="text-xs text-[#86868B]" x-text="order.shoeBrand + ' ' + order.shoeModel"></div>
+                      <div class="text-[11px] text-[#0071E3] font-semibold mt-1" x-text="'Teknisi: ' + getTechnicianName(order.technicianId)"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                      <div class="text-center">
+                        <span class="text-[10px] font-medium text-[#86868B] block mb-1">Before</span>
+                        <template x-if="order.photoBefore">
+                          <img :src="order.photoBefore" class="w-full h-16 object-cover rounded-xl border border-black/[0.06]">
+                        </template>
+                        <template x-if="!order.photoBefore">
+                          <div class="w-full h-16 bg-[#F5F5F7] rounded-xl flex items-center justify-center text-[10px] text-[#86868B]">No Photo</div>
+                        </template>
+                      </div>
+                      <div class="text-center">
+                        <span class="text-[10px] font-medium text-[#86868B] block mb-1">After</span>
+                        <template x-if="order.photoAfter">
+                          <img :src="order.photoAfter" class="w-full h-16 object-cover rounded-xl border border-[#34C759]/50">
+                        </template>
+                        <template x-if="!order.photoAfter">
+                          <label class="w-full h-16 bg-[#F5F5F7] border border-dashed border-black/15 rounded-xl flex flex-col items-center justify-center text-[10px] font-semibold text-[#0071E3] cursor-pointer hover:bg-[#0071E3]/5 transition">
+                            <i data-lucide="camera" class="w-3.5 h-3.5 mb-0.5"></i> Upload
+                            <input type="file" accept="image/*" @change="handleAfterImageUpload(order.id, $event)" class="hidden">
+                          </label>
+                        </template>
+                      </div>
+                    </div>
+
+                    <div x-show="order.conditions && order.conditions.length > 0" class="text-[10px] font-medium text-[#FF9500] bg-[#FF9500]/10 px-2.5 py-1 rounded-lg">
+                      ⚠️ <span x-text="order.conditions.join(', ')"></span>
+                    </div>
+
+                    <div class="pt-2.5 border-t border-black/[0.06] flex items-center justify-between gap-1.5">
+                      <div class="flex items-center gap-1">
+                        <button @click="openReceiptModal(order)" class="p-1.5 bg-[#F5F5F7] hover:bg-black/[0.08] text-[#1D1D1F] rounded-xl text-xs transition" title="Cetak Struk">
+                          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button @click="sendWAMessage(order)" class="p-1.5 bg-[#34C759]/15 hover:bg-[#34C759]/25 text-[#248A3D] rounded-xl text-xs transition" title="Kirim WA">
+                          <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+
+                      <select @change="updateOrderStatus(order.id, $event.target.value)" class="bg-[#F5F5F7] text-[11px] font-semibold text-[#0071E3] rounded-xl px-2 py-1.5 focus:outline-none max-w-[110px]">
+                        <template x-for="st in statusList" :key="st">
+                          <option :value="st" :selected="st === order.status" x-text="st"></option>
+                        </template>
+                      </select>
+                    </div>
+
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- MODULE 3: DATABASE CRM -->
+      <div x-show="currentTab === 'crm'" x-transition.opacity.duration.200ms class="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <div class="flex items-center justify-between border-b border-black/[0.06] pb-5">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-[#1D1D1F]">Database CRM & Loyalty</h2>
+            <p class="text-[13px] text-[#86868B] mt-0.5">Segmentasi member, riwayat transaksi, dan pengingat retensi WhatsApp</p>
+          </div>
+        </div>
+
+        <div class="apple-card rounded-3xl overflow-hidden">
+          <div class="p-5 border-b border-black/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <span class="text-sm font-bold text-[#1D1D1F]">Pelanggan Terdaftar (<span x-text="customers.length"></span>)</span>
+            <div class="relative w-full sm:w-64">
+              <input type="text" x-model="crmSearch" placeholder="Cari nama atau nomor WA..." class="apple-input w-full rounded-full pl-9 pr-4 py-2 text-xs">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-[#86868B] absolute left-3.5 top-2.5"></i>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-[#F5F5F7] text-[#86868B] border-b border-black/[0.06]">
+                <tr>
+                  <th class="p-4 font-semibold">Pelanggan</th>
+                  <th class="p-4 font-semibold">No. WhatsApp</th>
+                  <th class="p-4 font-semibold">Segmentasi</th>
+                  <th class="p-4 font-semibold text-center">Total Order</th>
+                  <th class="p-4 font-semibold">Lifetime Value</th>
+                  <th class="p-4 font-semibold">Poin Loyalty</th>
+                  <th class="p-4 font-semibold text-right">Retensi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-black/[0.05] text-[#1D1D1F]">
+                <template x-for="cust in filteredCustomers" :key="cust.phone">
+                  <tr class="hover:bg-[#F5F5F7]/60 transition">
+                    <td class="p-4 font-bold" x-text="cust.name"></td>
+                    <td class="p-4 font-mono text-[#515154]" x-text="cust.phone"></td>
+                    <td class="p-4">
+                      <span :class="getCustomerTagClass(cust.tag)" class="px-2.5 py-1 rounded-full text-[11px] font-bold" x-text="cust.tag"></span>
+                    </td>
+                    <td class="p-4 text-center font-semibold" x-text="cust.totalOrders"></td>
+                    <td class="p-4 font-mono font-bold text-[#248A3D]" x-text="formatRupiah(cust.lifetimeValue)"></td>
+                    <td class="p-4">
+                      <span class="text-[#0071E3] font-bold" x-text="cust.points + ' Poin'"></span>
+                    </td>
+                    <td class="p-4 text-right">
+                      <button @click="sendRetentionWA(cust)" class="px-3.5 py-1.5 bg-[#34C759]/15 hover:bg-[#34C759]/25 text-[#248A3D] rounded-full text-xs font-semibold transition inline-flex items-center gap-1.5">
+                        <i data-lucide="send" class="w-3 h-3"></i> Reminder WA
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 4: DATABASE KARYAWAN & PENGGAJIAN (PAYROLL - OWNER ONLY) -->
+      <div x-show="currentTab === 'payroll' && userRole === 'owner'" x-transition.opacity.duration.200ms class="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.06] pb-5">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-[#1D1D1F]">SDM & Penggajian (Payroll)</h2>
+            <p class="text-[13px] text-[#86868B] mt-0.5">Cut-off komisi teknisi otomatis terintegrasi ke laporan kas bulanan</p>
+          </div>
+          <button @click="showAddEmployeeModal = true" class="px-5 py-2.5 bg-[#0071E3] hover:bg-[#0077ED] text-white font-semibold rounded-full text-xs flex items-center gap-2 shadow-sm transition">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Karyawan
+          </button>
+        </div>
+
+        <div class="apple-card p-5 rounded-3xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-[#0071E3]/10 text-[#0071E3] flex items-center justify-center">
+              <i data-lucide="calendar" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="text-xs text-[#86868B] block font-medium">Periode Cut-Off Penggajian</span>
+              <span class="text-base font-bold text-[#1D1D1F]" x-text="getFormattedPayrollMonthName(payrollMonth, payrollYear)"></span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-medium text-[#86868B]">Periode:</label>
+            <select x-model="payrollMonth" class="apple-input text-[#0071E3] text-xs rounded-full px-4 py-2 font-bold">
+              <option value="01">Januari</option>
+              <option value="02">Februari</option>
+              <option value="03">Maret</option>
+              <option value="04">April</option>
+              <option value="05">Mei</option>
+              <option value="06">Juni</option>
+              <option value="07">Juli</option>
+              <option value="08">Agustus</option>
+              <option value="09">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+            <select x-model="payrollYear" class="apple-input text-[#0071E3] text-xs rounded-full px-4 py-2 font-bold">
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="apple-card p-6 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Total Personel</span>
+            <div class="text-2xl font-bold text-[#1D1D1F]" x-text="employees.length + ' Orang'"></div>
+            <span class="text-[11px] text-[#86868B]">Teknisi, Kasir & Staff</span>
+          </div>
+          <div class="apple-card p-6 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Bagi Hasil Periode Ini</span>
+            <div class="text-2xl font-bold font-mono text-[#248A3D]" x-text="formatRupiah(calculateTotalCommissionAllForPeriod())"></div>
+            <span class="text-[11px] text-[#86868B]" x-text="'Periode ' + getFormattedPayrollMonthName(payrollMonth, payrollYear)"></span>
+          </div>
+          <div class="apple-card p-6 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Total Payroll Periode Ini</span>
+            <div class="text-2xl font-bold font-mono text-[#0071E3]" x-text="formatRupiah(calculateTotalPayrollEstimateForPeriod())"></div>
+            <span class="text-[11px] text-[#86868B]">Gaji Pokok + Bagi Hasil</span>
+          </div>
+        </div>
+
+        <div class="apple-card rounded-3xl overflow-hidden">
+          <div class="p-5 border-b border-black/[0.06] flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+            <h3 class="text-sm font-bold text-[#1D1D1F]">Akumulasi Gaji Periode <span class="text-[#0071E3]" x-text="payrollYear + '-' + payrollMonth"></span></h3>
+            <span class="text-[11px] text-[#86868B]">Klik jumlah pasang sepatu untuk melihat rincian produksi</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-[#F5F5F7] text-[#86868B] border-b border-black/[0.06]">
+                <tr>
+                  <th class="p-4 font-semibold">Nama Karyawan</th>
+                  <th class="p-4 font-semibold">No. WhatsApp</th>
+                  <th class="p-4 font-semibold">Role</th>
+                  <th class="p-4 font-semibold">Gaji Pokok</th>
+                  <th class="p-4 font-semibold text-center">Produksi</th>
+                  <th class="p-4 font-semibold">Bagi Hasil</th>
+                  <th class="p-4 font-semibold">Total Gross</th>
+                  <th class="p-4 font-semibold text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-black/[0.05] text-[#1D1D1F]">
+                <template x-for="emp in employees" :key="emp.id">
+                  <tr class="hover:bg-[#F5F5F7]/60 transition">
+                    <td class="p-4 font-bold" x-text="emp.name"></td>
+                    <td class="p-4 font-mono text-[#515154]" x-text="emp.phone"></td>
+                    <td class="p-4">
+                      <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F5F5F7] text-[#0071E3]" x-text="emp.role"></span>
+                    </td>
+                    <td class="p-4 font-mono font-semibold text-[#515154]" x-text="formatRupiah(emp.baseSalary)"></td>
+                    
+                    <td class="p-4 text-center">
+                      <button @click="openTechProductionDetailsForPeriod(emp)" class="px-3 py-1.5 bg-[#0071E3]/10 hover:bg-[#0071E3]/15 text-[#0071E3] rounded-full font-bold transition inline-flex items-center gap-1">
+                        <span x-text="getEmployeeOrderCountForPeriod(emp.id) + ' Pasang'"></span>
+                        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                      </button>
+                    </td>
+
+                    <td class="p-4 font-bold text-[#248A3D] font-mono" x-text="formatRupiah(getEmployeeCommissionForPeriod(emp.id))"></td>
+                    <td class="p-4 font-bold text-[#0071E3] text-sm font-mono" x-text="formatRupiah((emp.baseSalary || 0) + getEmployeeCommissionForPeriod(emp.id))"></td>
+                    
+                    <td class="p-4 text-right space-x-1.5 whitespace-nowrap">
+                      <template x-if="isEmployeePaidForSelectedPeriod(emp.id)">
+                        <span class="px-3 py-1.5 bg-[#34C759]/15 text-[#248A3D] rounded-full text-[11px] font-bold inline-flex items-center gap-1">
+                          <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Lunas (<span x-text="payrollMonth + '/' + payrollYear"></span>)
+                        </span>
+                      </template>
+                      <template x-if="!isEmployeePaidForSelectedPeriod(emp.id)">
+                        <button @click="openPayrollSlipModal(emp)" class="px-3.5 py-1.5 bg-[#0071E3] hover:bg-[#0077ED] text-white rounded-full text-[11px] font-semibold transition">
+                          Slip Gaji & Bayar
+                        </button>
+                      </template>
+                      
+                      <button @click="deleteEmployee(emp.id)" class="p-1.5 bg-[#FF3B30]/10 hover:bg-[#FF3B30]/20 text-[#FF3B30] rounded-full text-xs transition" title="Hapus Karyawan">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 5: FINANCIAL & LABA RUGI LEDGER (OWNER ONLY) -->
+      <div x-show="currentTab === 'finance' && userRole === 'owner'" x-transition.opacity.duration.200ms class="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.06] pb-5">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-[#1D1D1F]">Laporan Akuntansi Laba Rugi</h2>
+            <p class="text-[13px] text-[#86868B] mt-0.5">Analisis Profit & Loss (P&L), HPP Bahan, Komisi, Audit Kas Real-time & Ekspor PDF</p>
+          </div>
+          
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <div class="apple-card flex items-center rounded-full px-4 py-2 space-x-2 text-xs font-medium">
+              <i data-lucide="calendar" class="w-4 h-4 text-[#0071E3]"></i>
+              <input type="date" x-model="reportStartDate" @change="renderFinancialChart()" class="bg-transparent text-[#1D1D1F] focus:outline-none">
+              <span class="text-[#86868B]">s/d</span>
+              <input type="date" x-model="reportEndDate" @change="renderFinancialChart()" class="bg-transparent text-[#1D1D1F] focus:outline-none">
+            </div>
+            <button @click="generatePDFReport()" class="px-5 py-2.5 bg-[#0071E3] hover:bg-[#0077ED] text-white font-semibold rounded-full text-xs flex items-center gap-2 shadow-sm transition">
+              <i data-lucide="file-text" class="w-4 h-4"></i> Download PDF Laba Rugi
+            </button>
+          </div>
+        </div>
+
+        <!-- METRICS LABA RUGI DASHBOARD -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="apple-card p-5 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Pendapatan Bersih</span>
+            <div class="text-xl font-bold font-mono text-[#248A3D]" x-text="formatRupiah(calculatePnL().netRevenue)"></div>
+            <span class="text-[11px] text-[#86868B]">Omzet Penjualan (Nett)</span>
+          </div>
+
+          <div class="apple-card p-5 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Total HPP & Komisi</span>
+            <div class="text-xl font-bold font-mono text-[#FF3B30]" x-text="formatRupiah(calculatePnL().totalHpp + calculatePnL().totalCommission)"></div>
+            <span class="text-[10px] text-[#86868B] block truncate" x-text="'Bahan: ' + formatRupiah(calculatePnL().totalHpp) + ' | Komisi: ' + formatRupiah(calculatePnL().totalCommission)"></span>
+          </div>
+
+          <div class="apple-card p-5 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Laba Kotor (Gross)</span>
+            <div class="text-xl font-bold font-mono text-[#0071E3]" x-text="formatRupiah(calculatePnL().grossProfit)"></div>
+            <span class="text-[11px] text-[#86868B]">Pendapatan - HPP & Komisi</span>
+          </div>
+
+          <div class="apple-card p-5 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Beban OPEX & Gaji</span>
+            <div class="text-xl font-bold font-mono text-[#FF9500]" x-text="formatRupiah(calculatePnL().opex + calculatePnL().baseSalaryExpense)"></div>
+            <span class="text-[11px] text-[#86868B]">Operasional + Gaji Pokok</span>
+          </div>
+
+          <div class="apple-card p-5 rounded-3xl space-y-1">
+            <span class="text-xs text-[#86868B] font-medium">Laba Bersih (Net Profit)</span>
+            <div class="text-xl font-bold font-mono" :class="calculatePnL().netProfit >= 0 ? 'text-[#248A3D]' : 'text-[#FF3B30]'" x-text="formatRupiah(calculatePnL().netProfit)"></div>
+            <span class="text-[11px] text-[#86868B]">Hasil Akhir Usaha</span>
+          </div>
+        </div>
+
+        <!-- CHART & AUDIT KAS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-7 apple-card p-6 rounded-3xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-[#1D1D1F] flex items-center gap-2">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#0071E3]"></i> Grafik Pendapatan vs Beban
+              </h3>
+              <span class="text-xs text-[#86868B]">Rentang tanggal terpilih</span>
+            </div>
+            <div class="h-64 w-full">
+              <canvas id="financialChartCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- AUDIT KAS REAL-TIME -->
+          <div class="lg:col-span-5 apple-card p-6 rounded-3xl flex flex-col justify-between space-y-4">
+            <div class="flex items-center justify-between border-b border-black/[0.06] pb-3.5">
+              <div>
+                <h3 class="text-sm font-bold text-[#1D1D1F]">Saldo Kas Operasional</h3>
+                <span class="text-[11px] text-[#86868B]">Posisi Uang Fisik & Digital Real-time</span>
+              </div>
+              <span class="w-8 h-8 rounded-2xl bg-[#0071E3]/10 text-[#0071E3] flex items-center justify-center">
+                <i data-lucide="landmark" class="w-4 h-4"></i>
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 flex-1">
+              <div class="p-4 bg-[#F5F5F7] rounded-2xl flex flex-col justify-between">
+                <span class="text-xs text-[#86868B] font-medium">Sisa Laci Kasir (Cash)</span>
+                <span class="text-base font-bold font-mono text-[#248A3D] mt-1" x-text="formatRupiah(calculateRevenueByMethod('Cash'))"></span>
+              </div>
+              <div class="p-4 bg-[#F5F5F7] rounded-2xl flex flex-col justify-between">
+                <span class="text-xs text-[#86868B] font-medium">Saldo Non-Cash (Bank/QRIS)</span>
+                <span class="text-base font-bold font-mono text-[#0071E3] mt-1" x-text="formatRupiah(calculateNonCashRevenue())"></span>
+              </div>
+              <div class="p-4 bg-[#F5F5F7] rounded-2xl flex flex-col justify-between">
+                <span class="text-xs text-[#86868B] font-medium">Prive / Withdrawal Owner</span>
+                <span class="text-base font-bold font-mono text-[#AF52DE] mt-1" x-text="formatRupiah(calculateTotalWithdrawal())"></span>
+              </div>
+              <div class="p-4 bg-[#F5F5F7] rounded-2xl flex flex-col justify-between">
+                <span class="text-xs text-[#86868B] font-medium">Sisa Piutang Pelanggan</span>
+                <span class="text-base font-bold font-mono text-[#FF9500] mt-1" x-text="formatRupiah(calculateUnpaid())"></span>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-black/[0.06] flex items-center justify-between text-[11px] text-[#86868B]">
+              <span>Input mutasi & pelunasan tersedia di tab Kasir</span>
+              <button @click="switchTab('pos')" class="text-[#0071E3] font-semibold hover:underline">Buka Kasir &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 6: MASTER DATA SETTINGS (OWNER ONLY) -->
+      <div x-show="currentTab === 'settings' && userRole === 'owner'" x-transition.opacity.duration.200ms class="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <div class="flex items-center justify-between border-b border-black/[0.06] pb-5">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-[#1D1D1F]">Master Treatment, HPP & Komisi</h2>
+            <p class="text-[13px] text-[#86868B] mt-0.5">Atur tarif layanan, rincian HPP bahan per pasang, komisi teknisi, dan checklist inspeksi</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-8 apple-card p-6 rounded-3xl space-y-5">
+            <h3 class="text-sm font-bold text-[#1D1D1F] flex items-center gap-2">
+              <i data-lucide="list-plus" class="w-4 h-4 text-[#0071E3]"></i> Master Layanan & Kalkulasi Margin
+            </h3>
+
+            <!-- FORM TAMBAH LAYANAN BARU -->
+            <div class="p-5 bg-[#F5F5F7] rounded-2xl space-y-3.5">
+              <span class="text-xs font-bold text-[#0071E3] uppercase tracking-wider block">Tambah Layanan Baru</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <input type="text" x-model="newService.name" placeholder="Nama Layanan (ex: Deep Clean Standard)" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+                <input type="text" x-model="newService.desc" placeholder="Deskripsi singkat" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+                <div>
+                  <label class="block text-[11px] font-medium text-[#86868B] mb-1">Harga Jual (Rp)</label>
+                  <input type="number" x-model.number="newService.price" placeholder="60000" class="w-full bg-white border border-black/10 rounded-xl px-3 py-2 text-xs font-mono">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-[#248A3D] mb-1">Komisi Teknisi (Rp)</label>
+                  <input type="number" x-model.number="newService.commissionFee" placeholder="10000" class="w-full bg-white border border-black/10 rounded-xl px-3 py-2 text-xs font-mono text-[#248A3D] font-bold">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-[#FF9500] mb-1">Total HPP Bahan</label>
+                  <div class="text-xs font-mono font-bold text-[#FF9500] py-2" x-text="formatRupiah(calculateTotalHppForForm(newService.hpp))"></div>
+                </div>
+              </div>
+
+              <!-- BREAKDOWN HPP BARU -->
+              <div class="p-3.5 bg-white rounded-2xl border border-black/[0.06] space-y-2.5">
+                <span class="text-[11px] font-semibold text-[#515154] block">Rincian HPP Bahan per Pasang:</span>
+                <div class="grid grid-cols-3 gap-2.5">
+                  <div>
+                    <label class="block text-[10px] text-[#86868B] mb-1">Sabun (Rp)</label>
+                    <input type="number" x-model.number="newService.hpp.soap" placeholder="2000" class="apple-input w-full rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-[#86868B] mb-1">Parfum (Rp)</label>
+                    <input type="number" x-model.number="newService.hpp.perfume" placeholder="1000" class="apple-input w-full rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-[#86868B] mb-1">Packaging (Rp)</label>
+                    <input type="number" x-model.number="newService.hpp.packaging" placeholder="1500" class="apple-input w-full rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                  </div>
+                </div>
+
+                <!-- BEBAN CUSTOM BARU -->
+                <div class="space-y-1.5 pt-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-[11px] text-[#86868B] font-medium">Beban Bahan Custom:</span>
+                    <button type="button" @click="addCustomHppToNewService()" class="text-[11px] font-semibold text-[#0071E3] hover:underline">+ Tambah Custom Cost</button>
+                  </div>
+                  <template x-for="(item, idx) in newService.hpp.customCosts" :key="idx">
+                    <div class="flex gap-2 items-center">
+                      <input type="text" x-model="item.name" placeholder="Nama Beban (ex: Degreaser)" class="apple-input flex-1 rounded-lg px-2.5 py-1.5 text-xs">
+                      <input type="number" x-model.number="item.cost" placeholder="Nominal Rp" class="apple-input w-28 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                      <button type="button" @click="newService.hpp.customCosts.splice(idx, 1)" class="text-[#FF3B30] text-sm px-1.5">&times;</button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <button @click="addService()" class="w-full py-2.5 bg-[#0071E3] hover:bg-[#0077ED] text-white font-semibold rounded-full text-xs transition">
+                + Simpan Master Layanan
+              </button>
+            </div>
+
+            <!-- DAFTAR LAYANAN DENGAN ESTIMASI MARGIN LABA -->
+            <div class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+              <template x-for="(service, idx) in availableServices" :key="service.id">
+                <div class="p-4 bg-[#F5F5F7] rounded-2xl space-y-3">
+                  <div class="flex items-center justify-between border-b border-black/[0.06] pb-2.5">
+                    <div>
+                      <span class="font-bold text-[#1D1D1F] text-sm" x-text="service.name"></span>
+                      <p class="text-[11px] text-[#86868B]" x-text="service.desc"></p>
+                    </div>
+                    <button @click="deleteService(idx)" class="p-1.5 bg-[#FF3B30]/10 hover:bg-[#FF3B30]/20 text-[#FF3B30] rounded-full text-xs transition" title="Hapus">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div>
+                      <label class="block text-[10px] text-[#86868B] mb-1">Harga Pelanggan (Rp)</label>
+                      <input type="number" x-model.number="service.price" class="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs font-mono">
+                    </div>
+                    <div>
+                      <label class="block text-[10px] text-[#248A3D] font-semibold mb-1">Komisi Teknisi (Rp)</label>
+                      <input type="number" x-model.number="service.commissionFee" class="w-full bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs font-mono text-[#248A3D] font-bold">
+                    </div>
+                    <div>
+                      <label class="block text-[10px] text-[#FF9500] font-semibold mb-1">Total HPP Bahan</label>
+                      <div class="text-xs font-mono font-bold text-[#FF9500] py-1.5" x-text="formatRupiah(calculateServiceTotalHpp(service))"></div>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] text-[#0071E3] font-semibold mb-1">Estimasi Margin</label>
+                      <div class="text-xs font-mono font-bold text-[#0071E3] py-1.5" x-text="formatRupiah(calculateServiceMargin(service))"></div>
+                    </div>
+                  </div>
+
+                  <!-- DETAIL & EDIT HPP PER LAYANAN EXISTING -->
+                  <div class="p-3.5 bg-white rounded-2xl border border-black/[0.06] space-y-2 text-xs">
+                    <span class="text-[10px] font-bold text-[#86868B] uppercase tracking-wider block">Rincian HPP Bahan</span>
+                    <div class="grid grid-cols-3 gap-2">
+                      <div>
+                        <label class="block text-[10px] text-[#86868B] mb-1">Sabun</label>
+                        <input type="number" x-model.number="getServiceHpp(service).soap" class="apple-input w-full rounded-lg px-2 py-1 text-xs font-mono">
+                      </div>
+                      <div>
+                        <label class="block text-[10px] text-[#86868B] mb-1">Parfum</label>
+                        <input type="number" x-model.number="getServiceHpp(service).perfume" class="apple-input w-full rounded-lg px-2 py-1 text-xs font-mono">
+                      </div>
+                      <div>
+                        <label class="block text-[10px] text-[#86868B] mb-1">Packaging</label>
+                        <input type="number" x-model.number="getServiceHpp(service).packaging" class="apple-input w-full rounded-lg px-2 py-1 text-xs font-mono">
+                      </div>
+                    </div>
+
+                    <div class="space-y-1.5 pt-1">
+                      <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-[#86868B]">Beban Custom:</span>
+                        <button type="button" @click="addCustomHppToExistingService(service)" class="text-[10px] font-semibold text-[#0071E3] hover:underline">+ Tambah Cost</button>
+                      </div>
+                      <template x-for="(item, cIdx) in getServiceHpp(service).customCosts" :key="cIdx">
+                        <div class="flex gap-2 items-center">
+                          <input type="text" x-model="item.name" class="apple-input flex-1 rounded-lg px-2 py-1 text-xs">
+                          <input type="number" x-model.number="item.cost" class="apple-input w-24 rounded-lg px-2 py-1 text-xs font-mono">
+                          <button type="button" @click="getServiceHpp(service).customCosts.splice(cIdx, 1)" class="text-[#FF3B30] text-xs px-1">&times;</button>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 apple-card p-6 rounded-3xl space-y-4">
+            <h3 class="text-sm font-bold text-[#1D1D1F] flex items-center gap-2">
+              <i data-lucide="check-square" class="w-4 h-4 text-[#0071E3]"></i> Master Checklist Inspeksi
+            </h3>
+
+            <div class="p-3 bg-[#F5F5F7] rounded-2xl">
+              <div class="flex gap-2">
+                <input type="text" x-model="newChecklistLabel" placeholder="Nama kondisi (ex: Insole Robek)" class="flex-1 bg-white border border-black/10 rounded-xl px-3 py-2 text-xs">
+                <button @click="addChecklist()" class="px-4 py-2 bg-[#0071E3] hover:bg-[#0077ED] text-white font-semibold rounded-full text-xs transition">
+                  Tambah
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+              <template x-for="(item, idx) in inspectionChecklist" :key="item.id">
+                <div class="p-3.5 bg-[#F5F5F7] rounded-2xl flex items-center justify-between text-xs">
+                  <span class="font-medium text-[#1D1D1F]" x-text="item.label"></span>
+                  <button @click="deleteChecklist(idx)" class="p-1.5 bg-[#FF3B30]/10 hover:bg-[#FF3B30]/20 text-[#FF3B30] rounded-full text-xs transition" title="Hapus">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL DETAIL PRODUKSI SEPATU TEKNISI -->
+  <div x-show="showTechProductionModal" x-cloak class="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-black/[0.08] rounded-[28px] p-6 w-full max-w-2xl space-y-4 shadow-apple-lg">
+      <div class="flex justify-between items-center border-b border-black/[0.06] pb-3.5">
+        <div>
+          <h3 class="text-base font-bold text-[#1D1D1F] flex items-center gap-2">
+            <i data-lucide="footprints" class="w-5 h-5 text-[#0071E3]"></i> Detail Produksi Sepatu
+          </h3>
+          <p class="text-xs text-[#86868B] mt-0.5" x-text="'Teknisi: ' + activeTechProduction?.name + ' • Periode: ' + getFormattedPayrollMonthName(payrollMonth, payrollYear)"></p>
+        </div>
+        <button @click="showTechProductionModal = false" class="w-8 h-8 rounded-full bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] flex items-center justify-center">&times;</button>
+      </div>
+
+      <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
+        <template x-if="activeTechShoesList.length === 0">
+          <div class="text-center py-10 text-[#86868B] text-xs">
+            Tidak ada pengerjaan sepatu untuk teknisi ini pada periode bulan <span x-text="payrollMonth + '/' + payrollYear"></span>.
+          </div>
+        </template>
+
+        <template x-for="(item, index) in activeTechShoesList" :key="index">
+          <div class="p-4 bg-[#F5F5F7] rounded-2xl space-y-2 text-xs">
+            <div class="flex items-center justify-between border-b border-black/[0.06] pb-2">
+              <span class="font-mono font-bold text-[#0071E3]" x-text="item.orderId"></span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-[#515154]" x-text="item.status"></span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="text-[#86868B] text-[10px] block">Pelanggan</span>
+                <span class="font-bold text-[#1D1D1F]" x-text="item.customerName"></span>
+              </div>
+              <div>
+                <span class="text-[#86868B] text-[10px] block">Sepatu / Seri</span>
+                <span class="font-bold text-[#1D1D1F]" x-text="item.shoeBrand + ' ' + item.shoeModel + ' (' + item.shoeColor + ' - EU' + item.shoeSize + ')'"></span>
+              </div>
+            </div>
+
+            <div class="pt-1.5 border-t border-black/[0.06] flex justify-between items-center text-[11px]">
+              <span class="text-[#515154]">Layanan: <strong class="text-[#0071E3]" x-text="item.servicesList"></strong></span>
+              <span class="text-[#248A3D] font-mono font-bold" x-text="formatRupiah(item.commission)"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div class="pt-3 border-t border-black/[0.06] text-right">
+        <button @click="showTechProductionModal = false" class="px-5 py-2 bg-[#F5F5F7] hover:bg-black/10 text-[#1D1D1F] font-semibold rounded-full text-xs transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TAMBAH KARYAWAN -->
+  <div x-show="showAddEmployeeModal" x-cloak class="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-black/[0.08] rounded-[28px] p-6 w-full max-w-md space-y-4 shadow-apple-lg">
+      <div class="flex justify-between items-center border-b border-black/[0.06] pb-3.5">
+        <h3 class="text-base font-bold text-[#1D1D1F] flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-4 h-4 text-[#0071E3]"></i> Tambah Karyawan Baru
+        </h3>
+        <button @click="showAddEmployeeModal = false" class="w-8 h-8 rounded-full bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] flex items-center justify-center">&times;</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block text-[#86868B] font-medium mb-1">Nama Lengkap Karyawan</label>
+          <input type="text" x-model="newEmployee.name" placeholder="Contoh: Rian Hidayat" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-sm">
+        </div>
+        <div>
+          <label class="block text-[#86868B] font-medium mb-1">Jabatan / Role</label>
+          <select x-model="newEmployee.role" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-sm">
+            <option value="Senior Technician">Senior Technician</option>
+            <option value="Junior Technician">Junior Technician</option>
+            <option value="Kasir & Admin">Kasir & Admin</option>
+            <option value="Workshop Lead">Workshop Lead</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[#86868B] font-medium mb-1">No. WhatsApp</label>
+          <input type="text" x-model="newEmployee.phone" placeholder="0812xxxx" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono">
+        </div>
+        <div>
+          <label class="block text-[#86868B] font-medium mb-1">Gaji Pokok Per Bulan (Rp)</label>
+          <input type="number" x-model.number="newEmployee.baseSalary" placeholder="1500000" class="apple-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-3 border-t border-black/[0.06]">
+        <button @click="addEmployee()" class="flex-1 py-2.5 bg-[#0071E3] hover:bg-[#0077ED] text-white font-semibold rounded-full text-xs transition">Simpan Karyawan</button>
+        <button @click="showAddEmployeeModal = false" class="px-5 py-2.5 bg-[#F5F5F7] text-[#1D1D1F] font-semibold rounded-full text-xs">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SLIP GAJI & PEMBAYARAN PAYROLL -->
+  <div x-show="showPayrollModal" x-cloak class="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white text-[#1D1D1F] rounded-[28px] p-6 w-full max-w-md space-y-4 shadow-apple-lg max-h-[90vh] overflow-y-auto">
+      <div id="printable-payslip" class="font-mono text-xs space-y-3 leading-tight">
+        <div class="text-center border-b border-dashed border-slate-400 pb-3">
+          <h2 class="font-bold text-base uppercase">ShoeClean Workshop</h2>
+          <p class="text-[10px] text-slate-600">SLIP GAJI & KOMISI BAGI HASIL TEKNISI</p>
+          <p class="text-[11px] font-bold text-slate-800" x-text="'PERIODE: ' + getFormattedPayrollMonthName(payrollMonth, payrollYear)"></p>
+        </div>
+
+        <div class="space-y-1 text-[11px]">
+          <div class="flex justify-between"><span>Nama Staf:</span><span class="font-bold" x-text="activePayrollEmployee?.name"></span></div>
+          <div class="flex justify-between"><span>Jabatan:</span><span x-text="activePayrollEmployee?.role"></span></div>
+          <div class="flex justify-between"><span>No. HP:</span><span x-text="activePayrollEmployee?.phone"></span></div>
+        </div>
+
+        <div class="py-2 border-t border-b border-dashed border-slate-400 space-y-2">
+          <span class="font-bold text-[11px] block">Rincian Penghasilan Periode Ini:</span>
+          
+          <div class="flex justify-between">
+            <span>Gaji Pokok:</span>
+            <span x-text="formatRupiah(activePayrollEmployee?.baseSalary)"></span>
+          </div>
+
+          <div class="flex justify-between font-semibold">
+            <span>Bagi Hasil (<span x-text="getEmployeeOrderCountForPeriod(activePayrollEmployee?.id)"></span> pasang):</span>
+            <span class="text-emerald-700" x-text="formatRupiah(getEmployeeCommissionForPeriod(activePayrollEmployee?.id))"></span>
+          </div>
+
+          <div class="pl-2 border-l-2 border-slate-300 space-y-1 text-[10px] text-slate-600">
+            <template x-for="item in getEmployeeCommissionBreakdownForPeriod(activePayrollEmployee?.id)" :key="item.serviceName">
+              <div class="flex justify-between">
+                <span x-text="item.serviceName + ' (' + item.count + 'x @ ' + formatRupiah(item.fee) + ')'"></span>
+                <span x-text="formatRupiah(item.total)"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="space-y-1 text-right text-[12px] pt-1">
+          <div class="flex justify-between font-bold text-slate-900">
+            <span>TOTAL DITERIMA:</span>
+            <span class="text-base font-bold text-[#0071E3]" x-text="formatRupiah((activePayrollEmployee?.baseSalary || 0) + getEmployeeCommissionForPeriod(activePayrollEmployee?.id))"></span>
+          </div>
+        </div>
+
+        <div class="text-center pt-4 border-t border-dashed border-slate-400 text-[10px] text-slate-600 space-y-1">
+          <p>Terima kasih atas kerja keras Anda!</p>
+          <p>ShoeClean Workshop Management</p>
+        </div>
+      </div>
+
+      <div class="p-3.5 bg-[#F5F5F7] rounded-2xl space-y-1.5 text-xs">
+        <label class="block font-semibold text-[#1D1D1F]">Sumber Pembayaran Gaji (Kas Out):</label>
+        <select x-model="payrollPayAccount" class="w-full bg-white border border-black/10 rounded-xl px-3 py-2 text-[#1D1D1F] font-medium focus:outline-none">
+          <option value="Cash">Laci Kasir (Cash Tunai)</option>
+          <option value="Bank/QRIS">Rekening Bank / Non-Cash</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2 pt-2 border-t border-black/[0.06]">
+        <button @click="processPayrollPayment()" class="w-full py-3 bg-[#34C759] hover:bg-[#2DB84D] text-white font-semibold rounded-full text-xs flex items-center justify-center gap-1.5 shadow-sm transition">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Eksekusi & Catat ke Akuntansi Kas
+        </button>
+        <div class="flex gap-2">
+          <button @click="window.print()" class="flex-1 py-2.5 bg-[#1D1D1F] hover:bg-black text-white font-semibold rounded-full text-xs flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Cetak Slip Gaji
+          </button>
+          <button @click="showPayrollModal = false" class="px-5 py-2.5 bg-[#F5F5F7] text-[#1D1D1F] font-semibold rounded-full text-xs">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RECEIPT WITH BEFORE / AFTER PHOTO PREVIEW -->
+  <div x-show="showReceiptModal" x-cloak class="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white text-[#1D1D1F] rounded-[28px] p-6 w-full max-w-md space-y-4 shadow-apple-lg max-h-[90vh] overflow-y-auto">
+      <div id="printable-receipt" class="font-mono text-xs space-y-3 leading-tight">
+        <div class="text-center border-b border-dashed border-slate-400 pb-3">
+          <h2 class="font-bold text-base uppercase">ShoeClean Workshop</h2>
+          <p class="text-[10px] text-slate-600">Jl. Riau No. 102, Bandung</p>
+          <p class="text-[10px] text-slate-600">WA: 0812-3456-7890</p>
+        </div>
+
+        <div class="space-y-1 text-[11px]">
+          <div class="flex justify-between"><span>No. Order:</span><span class="font-bold" x-text="activeReceipt?.id"></span></div>
+          <div class="flex justify-between"><span>Tanggal:</span><span x-text="formatShortDate(activeReceipt?.createdAt)"></span></div>
+          <div class="flex justify-between"><span>Pelanggan:</span><span x-text="activeReceipt?.customerName"></span></div>
+        </div>
+
+        <div class="py-2 border-t border-b border-dashed border-slate-400 space-y-3">
+          <template x-for="(item, idx) in (activeReceipt?.items || [])" :key="idx">
+            <div class="space-y-1">
+              <div class="flex justify-between font-bold text-slate-900">
+                <span x-text="(idx+1) + '. ' + item.shoeBrand + ' ' + item.shoeModel + ' (' + item.shoeColor + ' - EU' + item.shoeSize + ')'"></span>
+              </div>
+              <template x-for="svc in item.selectedServices" :key="svc.id">
+                <div class="flex justify-between pl-3 text-slate-700">
+                  <span x-text="'- ' + svc.name"></span>
+                  <span x-text="formatRupiah(svc.price)"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <div class="space-y-1 text-right text-[11px] border-t border-dashed border-slate-400 pt-2">
+          <div class="flex justify-between"><span>Total:</span><span class="font-bold" x-text="formatRupiah(activeReceipt?.totalAmount)"></span></div>
+          <div class="flex justify-between"><span>Bayar (DP):</span><span x-text="formatRupiah(activeReceipt?.dpAmount)"></span></div>
+          <div class="flex justify-between font-bold"><span>Sisa:</span><span x-text="formatRupiah(activeReceipt?.remaining)"></span></div>
+        </div>
+
+        <div class="text-center pt-3 border-t border-dashed border-slate-400 text-[10px] text-slate-600 space-y-1">
+          <p>Terima kasih atas kepercayaan Anda!</p>
+          <p>Simpan nota ini untuk pengambilan.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t border-black/[0.06]">
+        <button @click="window.print()" class="flex-1 py-2.5 bg-[#0071E3] hover:bg-[#0077ED] text-white font-semibold rounded-full text-xs flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="printer" class="w-4 h-4"></i> Cetak Thermal
+        </button>
+        <button @click="showReceiptModal = false" class="px-5 py-2.5 bg-[#F5F5F7] hover:bg-black/10 text-[#1D1D1F] font-semibold rounded-full text-xs transition">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PREVIEW PROOF NOTA -->
+  <div x-show="showImageModal" x-cloak class="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-black/[0.08] p-5 rounded-[28px] max-w-lg w-full space-y-3 shadow-apple-lg">
+      <div class="flex justify-between items-center text-sm font-bold text-[#1D1D1F]">
+        <span>Bukti Fisik Nota / Struk</span>
+        <button @click="showImageModal = false" class="w-8 h-8 rounded-full bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] flex items-center justify-center">&times;</button>
+      </div>
+      <img :src="modalImageSrc" class="w-full h-80 object-contain rounded-2xl bg-[#F5F5F7]">
+    </div>
+  </div>
+
+  <!-- HIDDEN CONTAINER FOR PDF GENERATION (LAPORAN LABA RUGI) -->
+  <div id="pdfReportContainer" class="hidden bg-white text-slate-900 p-8 font-sans space-y-6">
+    <div class="border-b-2 border-[#0071E3] pb-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 uppercase">ShoeClean Workshop</h1>
+        <p class="text-xs text-slate-500">Laporan Akuntansi Laba Rugi (Profit & Loss Statement)</p>
+      </div>
+      <div class="text-right text-xs text-slate-600">
+        <p>Periode: <span class="font-bold text-slate-800" x-text="reportStartDate + ' s/d ' + reportEndDate"></span></p>
+        <p>Dicetak: <span x-text="new Date().toLocaleDateString('id-ID')"></span></p>
+      </div>
+    </div>
+
+    <!-- TABLE RINGKASAN LABA RUGI PDF -->
+    <div class="space-y-3">
+      <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Ringkasan Laporan Laba Rugi</h3>
+      <table class="w-full text-xs text-left border-collapse">
+        <tbody>
+          <tr class="border-b bg-slate-50 font-semibold">
+            <td class="p-2">1. Pendapatan Bersih (Net Revenue)</td>
+            <td class="p-2 text-right text-emerald-600" x-text="formatRupiah(pdfSummary.netRevenue)"></td>
+          </tr>
+          <tr class="border-b">
+            <td class="p-2 pl-4 text-slate-600">2. Beban Pokok Penjualan - HPP Bahan (Soap, Perfume, Packaging, dll)</td>
+            <td class="p-2 text-right text-rose-600" x-text="'- ' + formatRupiah(pdfSummary.totalHpp)"></td>
+          </tr>
+          <tr class="border-b">
+            <td class="p-2 pl-4 text-slate-600">3. Beban Pokok Penjualan - Komisi Bagi Hasil Teknisi</td>
+            <td class="p-2 text-right text-rose-600" x-text="'- ' + formatRupiah(pdfSummary.totalCommission)"></td>
+          </tr>
+          <tr class="border-b bg-blue-50 font-bold">
+            <td class="p-2">LABA KOTOR (GROSS PROFIT)</td>
+            <td class="p-2 text-right text-[#0071E3]" x-text="formatRupiah(pdfSummary.grossProfit)"></td>
+          </tr>
+          <tr class="border-b">
+            <td class="p-2 pl-4 text-slate-600">4. Beban Operasional (OPEX & Biaya Kas)</td>
+            <td class="p-2 text-right text-rose-600" x-text="'- ' + formatRupiah(pdfSummary.opex)"></td>
+          </tr>
+          <tr class="border-b">
+            <td class="p-2 pl-4 text-slate-600">5. Beban Gaji Pokok Karyawan</td>
+            <td class="p-2 text-right text-rose-600" x-text="'- ' + formatRupiah(pdfSummary.baseSalaryExpense)"></td>
+          </tr>
+          <tr class="border-b bg-slate-100 font-bold text-sm">
+            <td class="p-2.5">LABA BERSIH OPERASIONAL (NET PROFIT)</td>
+            <td class="p-2.5 text-right" :class="pdfSummary.netProfit >= 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="formatRupiah(pdfSummary.netProfit)"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="space-y-2">
+      <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Grafik Visualisasi Pendapatan vs Beban</h3>
+      <img id="pdfChartImage" class="w-full h-48 object-contain">
+    </div>
+
+    <div class="space-y-2 pt-2">
+      <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Rincian Jurnal Transaksi & Order Periode Ini</h3>
+      <table class="w-full text-left text-[11px] border-collapse">
+        <thead>
+          <tr class="bg-slate-100 text-slate-700 border-b">
+            <th class="p-2">Tanggal</th>
+            <th class="p-2">Tipe</th>
+            <th class="p-2">Keterangan</th>
+            <th class="p-2">Metode</th>
+            <th class="p-2 text-right">Nominal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="row in filteredReportEntries" :key="row.id">
+            <tr class="border-b border-slate-200">
+              <td class="p-2" x-text="formatShortDate(row.createdAt)"></td>
+              <td class="p-2 font-bold" x-text="row.type"></td>
+              <td class="p-2" x-text="row.description"></td>
+              <td class="p-2" x-text="row.method"></td>
+              <td class="p-2 text-right font-bold" :class="row.type === 'TRANSFER' ? 'text-[#0071E3]' : ((row.type === 'EXPENSE' || row.type === 'WITHDRAWAL' || row.type === 'PAYROLL') ? 'text-rose-600' : 'text-emerald-600')" x-text="(row.type === 'TRANSFER' ? '↔ ' : ((row.type === 'EXPENSE' || row.type === 'WITHDRAWAL' || row.type === 'PAYROLL') ? '- ' : '+ ')) + formatRupiah(row.amount)"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- APPLICATION ENGINE JAVASCRIPT -->
+  <script>
+    function posApp() {
+      return {
+        // Authentication State
+        isAuthenticated: false,
+        userRole: null, // 'owner' | 'team'
+        currentUserName: '',
+        loginRoleHint: 'owner',
+        loginForm: { username: '', password: '' },
+        showLoginPassword: false,
+        loginError: '',
+        loginShake: false,
+
+        currentTab: 'pos',
+        nextOrderNumber: 101,
+        kanbanSearch: '',
+        crmSearch: '',
+        unpaidSearch: '',
+        customerMode: 'existing',
+        foundCustomer: false,
+        showReceiptModal: false,
+        showImageModal: false,
+        showAddEmployeeModal: false,
+        showPayrollModal: false,
+        showTechProductionModal: false,
+        activePayrollEmployee: null,
+        activeTechProduction: null,
+        activeTechShoesList: [],
+        payrollPayAccount: 'Cash',
+        modalImageSrc: '',
+        activeReceipt: null,
+        unpaidPayMethod: {},
+        chartInstance: null,
+
+        payrollMonth: new Date().toISOString().slice(5, 7),
+        payrollYear: new Date().getFullYear().toString(),
+
+        reportStartDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10),
+        reportEndDate: new Date().toISOString().slice(0,10),
+        pdfSummary: { netRevenue: 0, totalHpp: 0, totalCommission: 0, grossProfit: 0, opex: 0, baseSalaryExpense: 0, netProfit: 0 },
+
+        statusList: ['Queue (Antrean)', 'Washing/Cleaning', 'Drying', 'QC & Repacking', 'Ready for Pickup', 'Completed/Picked Up'],
+
+        inspectionChecklist: [
+          { id: 'chk1', label: 'Lumpur / Noda Membandel' },
+          { id: 'chk2', label: 'Sole Kuning (Unyellowing Needed)' },
+          { id: 'chk3', label: 'Upper / Mesh Sobek' },
+          { id: 'chk4', label: 'Insole Aus / Rontok' },
+          { id: 'chk5', label: 'Lem Lepas (Reglue Needed)' },
+          { id: 'chk6', label: 'Aroma Bau / Lembab' }
+        ],
+
+        availableServices: [
+          { 
+            id: 'srv1', 
+            name: 'Deep Clean Standard', 
+            desc: 'Pembersihan menyeluruh upper, midsole, insole & outsole', 
+            price: 60000, 
+            commissionFee: 10000,
+            hpp: { soap: 3000, perfume: 1500, packaging: 1500, customCosts: [] }
+          },
+          { 
+            id: 'srv2', 
+            name: 'Fast Clean', 
+            desc: 'Pembersihan cepat bagian luar/upper & midsole', 
+            price: 35000, 
+            commissionFee: 5000,
+            hpp: { soap: 1500, perfume: 1000, packaging: 1500, customCosts: [] }
+          },
+          { 
+            id: 'srv3', 
+            name: 'Unyellowing Treatment', 
+            desc: 'Proses oksidasi memulihkan warna kuning pada sole', 
+            price: 50000, 
+            commissionFee: 10000,
+            hpp: { soap: 2000, perfume: 1000, packaging: 1500, customCosts: [{ name: 'Cairan Unyellowing', cost: 5000 }] }
+          },
+          { 
+            id: 'srv4', 
+            name: 'Reglue Sole', 
+            desc: 'Pengeleman ulang sepatu lepas/sol mangap', 
+            price: 45000, 
+            commissionFee: 12000,
+            hpp: { soap: 1000, perfume: 1000, packaging: 1500, customCosts: [{ name: 'Lem Primer & Glue', cost: 4000 }] }
+          },
+          { 
+            id: 'srv5', 
+            name: 'Repaint Upper/Sol', 
+            desc: 'Pengecatan ulang warna yang pudar', 
+            price: 120000, 
+            commissionFee: 25000,
+            hpp: { soap: 2000, perfume: 1000, packaging: 1500, customCosts: [{ name: 'Cat Leather / Finisher', cost: 15000 }] }
+          },
+          { 
+            id: 'srv6', 
+            name: 'Express Sameday Fee', 
+            desc: 'Layanan pengerjaan kilat selesai dalam 24 jam', 
+            price: 30000, 
+            commissionFee: 5000,
+            hpp: { soap: 0, perfume: 0, packaging: 0, customCosts: [] }
+          }
+        ],
+
+        employees: [
+          { id: 'emp1', name: 'Kemal Sidik', role: 'Junior Technician', phone: '08789456125', baseSalary: 300000 },
+          { id: 'emp2', name: 'Ade Hernando', role: 'Junior Technician', phone: '08789456369', baseSalary: 300000 },
+          { id: 'emp3', name: 'Siti Aminah', role: 'Kasir & Admin', phone: '085711223344', baseSalary: 1500000 }
+        ],
+
+        newEmployee: { name: '', role: 'Senior Technician', phone: '', baseSalary: 1500000 },
+        
+        newService: { 
+          name: '', 
+          desc: '', 
+          price: 0, 
+          commissionFee: 10000,
+          hpp: { soap: 2000, perfume: 1000, packaging: 1500, customCosts: [] }
+        },
+
+        newChecklistLabel: '',
+
+        orderForm: {
+          customerPhone: '',
+          customerName: '',
+          customerAddress: '',
+          items: [
+            {
+              shoeBrand: '',
+              shoeModel: '',
+              shoeColor: '',
+              shoeSize: '',
+              technicianId: '',
+              conditions: [],
+              photoBefore: null,
+              photoAfter: null,
+              selectedServices: []
+            }
+          ],
+          discount: 0,
+          paymentMethod: 'Cash',
+          dpAmount: 0
+        },
+
+        ledgerForm: {
+          type: 'EXPENSE',
+          description: '',
+          amount: null,
+          method: 'Cash',
+          proofImage: null
+        },
+
+        orders: [],
+        customers: [],
+        ledger: [],
+
+        initApp() {
+          this.loadAuthSession();
+          this.loadFromStorage();
+          this.$watch('orders', () => this.saveToStorage(), { deep: true });
+          this.$watch('customers', () => this.saveToStorage(), { deep: true });
+          this.$watch('availableServices', () => this.saveToStorage(), { deep: true });
+          this.$watch('inspectionChecklist', () => this.saveToStorage(), { deep: true });
+          this.$watch('employees', () => this.saveToStorage(), { deep: true });
+          this.$watch('ledger', () => this.saveToStorage(), { deep: true });
+          setTimeout(() => lucide.createIcons(), 100);
+        },
+
+        selectLoginRole(role) {
+          this.loginRoleHint = role;
+          this.loginError = '';
+        },
+
+        handleLogin() {
+          const u = (this.loginForm.username || '').trim();
+          const p = (this.loginForm.password || '').trim();
+
+          if (u === 'laundrysepatu10' && p === 'bismillah10') {
+            this.isAuthenticated = true;
+            this.userRole = 'owner';
+            this.currentUserName = 'Owner';
+            this.loginError = '';
+            this.loginForm = { username: '', password: '' };
+            localStorage.setItem('shoeclean_auth_session', JSON.stringify({ role: 'owner', name: 'Owner' }));
+            this.switchTab('pos');
+            this.$nextTick(() => lucide.createIcons());
+            return;
+          }
+
+          if (u === 'teamsolid' && p === 'majubersama') {
+            this.isAuthenticated = true;
+            this.userRole = 'team';
+            this.currentUserName = 'Team';
+            this.loginError = '';
+            this.loginForm = { username: '', password: '' };
+            localStorage.setItem('shoeclean_auth_session', JSON.stringify({ role: 'team', name: 'Team' }));
+            this.switchTab('pos');
+            this.$nextTick(() => lucide.createIcons());
+            return;
+          }
+
+          this.loginError = 'Username atau password tidak sesuai. Silakan periksa kembali.';
+          this.loginShake = true;
+          setTimeout(() => { this.loginShake = false; }, 400);
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        loadAuthSession() {
+          const saved = localStorage.getItem('shoeclean_auth_session');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (parsed && (parsed.role === 'owner' || parsed.role === 'team')) {
+                this.isAuthenticated = true;
+                this.userRole = parsed.role;
+                this.currentUserName = parsed.name || (parsed.role === 'owner' ? 'Owner' : 'Team');
+              }
+            } catch (e) {}
+          }
+        },
+
+        logout() {
+          this.isAuthenticated = false;
+          this.userRole = null;
+          this.currentUserName = '';
+          this.currentTab = 'pos';
+          localStorage.removeItem('shoeclean_auth_session');
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        switchTab(tab) {
+          const ownerOnlyTabs = ['payroll', 'finance', 'settings'];
+          if (this.userRole !== 'owner' && ownerOnlyTabs.includes(tab)) {
+            this.currentTab = 'pos';
+            return;
+          }
+          this.currentTab = tab;
+          if (tab === 'finance') {
+            this.$nextTick(() => this.renderFinancialChart());
+          }
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        getServiceHpp(service) {
+          if (!service) return { soap: 0, perfume: 0, packaging: 0, customCosts: [] };
+          if (!service.hpp) {
+            service.hpp = { soap: 0, perfume: 0, packaging: 0, customCosts: [] };
+          }
+          if (!service.hpp.customCosts) {
+            service.hpp.customCosts = [];
+          }
+          return service.hpp;
+        },
+
+        calculateTotalHppForForm(hppObj) {
+          if (!hppObj) return 0;
+          const soap = Number(hppObj.soap || 0);
+          const perfume = Number(hppObj.perfume || 0);
+          const packaging = Number(hppObj.packaging || 0);
+          const customTotal = (hppObj.customCosts || []).reduce((sum, c) => sum + Number(c.cost || 0), 0);
+          return soap + perfume + packaging + customTotal;
+        },
+
+        calculateServiceTotalHpp(service) {
+          return this.calculateTotalHppForForm(this.getServiceHpp(service));
+        },
+
+        calculateServiceMargin(service) {
+          const price = Number(service.price || 0);
+          const commission = Number(service.commissionFee || 0);
+          const hpp = this.calculateServiceTotalHpp(service);
+          return Math.max(0, price - commission - hpp);
+        },
+
+        addCustomHppToNewService() {
+          if (!this.newService.hpp.customCosts) this.newService.hpp.customCosts = [];
+          this.newService.hpp.customCosts.push({ name: '', cost: 0 });
+        },
+
+        addCustomHppToExistingService(service) {
+          const hpp = this.getServiceHpp(service);
+          hpp.customCosts.push({ name: '', cost: 0 });
+        },
+
+        get technicians() {
+          return this.employees.filter(e => e.role && (e.role.includes('Technician') || e.role.includes('Workshop')));
+        },
+
+        getTechnicianName(techId) {
+          if (!techId) return 'Unassigned';
+          const t = this.employees.find(e => e.id === techId);
+          return t ? t.name : 'Unassigned';
+        },
+
+        getFormattedPayrollMonthName(monthStr, yearStr) {
+          const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+          const idx = parseInt(monthStr, 10) - 1;
+          return `${monthNames[idx] || ''} ${yearStr}`;
+        },
+
+        setCustomerMode(mode) {
+          this.customerMode = mode;
+          if (mode === 'new') {
+            this.orderForm.customerPhone = '';
+            this.orderForm.customerName = '';
+            this.orderForm.customerAddress = '';
+            this.foundCustomer = false;
+          }
+        },
+
+        selectCustomerFromCRM(phone) {
+          if (!phone) return;
+          const cust = this.customers.find(c => c.phone === phone);
+          if (cust) {
+            this.orderForm.customerPhone = cust.phone;
+            this.orderForm.customerName = cust.name;
+            this.orderForm.customerAddress = cust.address || '';
+            this.foundCustomer = true;
+          }
+        },
+
+        searchCustomerByPhone() {
+          if (!this.orderForm.customerPhone) {
+            this.foundCustomer = false;
+            return;
+          }
+          const target = this.cleanPhone(this.orderForm.customerPhone);
+          const cust = this.customers.find(c => this.cleanPhone(c.phone) === target);
+          if (cust) {
+            this.orderForm.customerName = cust.name;
+            this.orderForm.customerAddress = cust.address || '';
+            this.foundCustomer = true;
+          } else {
+            this.foundCustomer = false;
+          }
+        },
+
+        addShoeItem() {
+          this.orderForm.items.push({
+            shoeBrand: '',
+            shoeModel: '',
+            shoeColor: '',
+            shoeSize: '',
+            technicianId: '',
+            conditions: [],
+            photoBefore: null,
+            photoAfter: null,
+            selectedServices: []
+          });
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        removeShoeItem(index) {
+          if (this.orderForm.items.length > 1) {
+            this.orderForm.items.splice(index, 1);
+          }
+        },
+
+        handleItemBeforeImageUpload(index, e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { this.orderForm.items[index].photoBefore = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+        },
+
+        toggleServiceForItem(itemIndex, service) {
+          const services = this.orderForm.items[itemIndex].selectedServices;
+          const idx = services.findIndex(s => s.id === service.id);
+          if (idx > -1) {
+            services.splice(idx, 1);
+          } else {
+            services.push(JSON.parse(JSON.stringify(service)));
+          }
+        },
+
+        isServiceSelectedForItem(itemIndex, serviceId) {
+          return this.orderForm.items[itemIndex].selectedServices.some(s => s.id === serviceId);
+        },
+
+        handleAfterImageUpload(orderId, e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              const order = this.orders.find(o => o.id === orderId);
+              if (order) {
+                order.photoAfter = evt.target.result;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        },
+
+        handleLedgerProofUpload(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { this.ledgerForm.proofImage = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+        },
+
+        calculateSubtotal() {
+          return this.orderForm.items.reduce((total, shoe) => {
+            return total + shoe.selectedServices.reduce((sum, s) => sum + s.price, 0);
+          }, 0);
+        },
+
+        calculateTotal() {
+          return Math.max(0, this.calculateSubtotal() - (this.orderForm.discount || 0));
+        },
+
+        calculateRemaining() {
+          return Math.max(0, this.calculateTotal() - (this.orderForm.dpAmount || 0));
+        },
+
+        submitOrder() {
+          if (!this.orderForm.customerPhone || !this.orderForm.customerName) {
+            alert('Silakan isi Nama dan No WhatsApp Pelanggan!');
+            return;
+          }
+          
+          let hasServices = false;
+          this.orderForm.items.forEach(item => {
+            if (item.selectedServices.length > 0) hasServices = true;
+          });
+
+          if (!hasServices) {
+            alert('Pilih minimal satu layanan pada salah satu sepatu!');
+            return;
+          }
+
+          const orderId = '#ORD-' + String(this.nextOrderNumber).padStart(4, '0');
+          const totalAmount = this.calculateTotal();
+          const remaining = this.calculateRemaining();
+
+          const newOrder = {
+            id: orderId,
+            customerPhone: this.orderForm.customerPhone,
+            customerName: this.orderForm.customerName,
+            customerAddress: this.orderForm.customerAddress,
+            shoeBrand: this.orderForm.items[0].shoeBrand || 'Sepatu',
+            shoeModel: this.orderForm.items[0].shoeModel || '',
+            technicianId: this.orderForm.items[0].technicianId || null,
+            photoBefore: this.orderForm.items[0].photoBefore || null,
+            conditions: this.orderForm.items[0].conditions || [],
+            items: JSON.parse(JSON.stringify(this.orderForm.items)),
+            discount: this.orderForm.discount,
+            paymentMethod: this.orderForm.paymentMethod,
+            totalAmount: totalAmount,
+            dpAmount: this.orderForm.dpAmount || 0,
+            remaining: remaining,
+            payments: [
+              { amount: this.orderForm.dpAmount || 0, method: this.orderForm.paymentMethod, date: new Date().toISOString() }
+            ],
+            status: 'Queue (Antrean)',
+            createdAt: new Date().toISOString()
+          };
+
+          this.orders.unshift(newOrder);
+          this.updateCRM(newOrder);
+
+          this.nextOrderNumber++;
+          this.activeReceipt = newOrder;
+          this.showReceiptModal = true;
+          this.resetForm();
+        },
+
+        deleteOrder(orderId) {
+          if (confirm(`Apakah Anda yakin ingin menghapus order ${orderId}?`)) {
+            this.orders = this.orders.filter(o => o.id !== orderId);
+          }
+        },
+
+        addEmployee() {
+          if (!this.newEmployee.name || !this.newEmployee.phone) {
+            alert('Lengkapi nama dan nomor telepon karyawan!');
+            return;
+          }
+
+          this.employees.push({
+            id: 'emp_' + Date.now(),
+            name: this.newEmployee.name,
+            role: this.newEmployee.role,
+            phone: this.newEmployee.phone,
+            baseSalary: this.newEmployee.baseSalary || 0
+          });
+
+          this.newEmployee = { name: '', role: 'Senior Technician', phone: '', baseSalary: 1500000 };
+          this.showAddEmployeeModal = false;
+        },
+
+        deleteEmployee(empId) {
+          if (confirm('Apakah Anda yakin ingin menghapus data karyawan ini?')) {
+            this.employees = this.employees.filter(e => e.id !== empId);
+          }
+        },
+
+        isOrderInSelectedPeriod(orderDateStr) {
+          if (!orderDateStr) return false;
+          const targetPeriod = `${this.payrollYear}-${this.payrollMonth}`;
+          return orderDateStr.slice(0, 7) === targetPeriod;
+        },
+
+        getEmployeeOrderCountForPeriod(empId) {
+          if (!empId) return 0;
+          let count = 0;
+          this.orders.forEach(o => {
+            if (this.isOrderInSelectedPeriod(o.createdAt)) {
+              if (o.items && Array.isArray(o.items)) {
+                o.items.forEach(item => {
+                  if (item.technicianId === empId) count++;
+                });
+              } else if (o.technicianId === empId) {
+                count++;
+              }
+            }
+          });
+          return count;
+        },
+
+        openTechProductionDetailsForPeriod(emp) {
+          this.activeTechProduction = emp;
+          const shoes = [];
+
+          this.orders.forEach(o => {
+            if (this.isOrderInSelectedPeriod(o.createdAt)) {
+              if (o.items && Array.isArray(o.items)) {
+                o.items.forEach(item => {
+                  if (item.technicianId === emp.id) {
+                    const servicesText = (item.selectedServices || []).map(s => s.name).join(', ') || 'Tanpa Layanan';
+                    const totalCommission = (item.selectedServices || []).reduce((s, svc) => s + (svc.commissionFee !== undefined ? svc.commissionFee : 10000), 0);
+                    shoes.push({
+                      orderId: o.id,
+                      customerName: o.customerName,
+                      shoeBrand: item.shoeBrand || 'Sepatu',
+                      shoeModel: item.shoeModel || '-',
+                      shoeColor: item.shoeColor || '-',
+                      shoeSize: item.shoeSize || '-',
+                      servicesList: servicesText,
+                      commission: totalCommission,
+                      status: o.status,
+                      date: o.createdAt
+                    });
+                  }
+                });
+              } else if (o.technicianId === emp.id) {
+                shoes.push({
+                  orderId: o.id,
+                  customerName: o.customerName,
+                  shoeBrand: o.shoeBrand || 'Sepatu',
+                  shoeModel: o.shoeModel || '-',
+                  shoeColor: '-',
+                  shoeSize: '-',
+                  servicesList: 'Treatment Standard',
+                  commission: 10000,
+                  status: o.status,
+                  date: o.createdAt
+                });
+              }
+            }
+          });
+
+          this.activeTechShoesList = shoes;
+          this.showTechProductionModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        getEmployeeCommissionForPeriod(empId) {
+          if (!empId) return 0;
+          let totalCommission = 0;
+          
+          this.orders.forEach(o => {
+            if (this.isOrderInSelectedPeriod(o.createdAt)) {
+              if (o.items && Array.isArray(o.items)) {
+                o.items.forEach(item => {
+                  if (item.technicianId === empId && item.selectedServices) {
+                    item.selectedServices.forEach(s => {
+                      const fee = s.commissionFee !== undefined ? s.commissionFee : 10000;
+                      totalCommission += fee;
+                    });
+                  }
+                });
+              } else if (o.technicianId === empId && o.services) {
+                o.services.forEach(s => {
+                  const fee = s.commissionFee !== undefined ? s.commissionFee : 10000;
+                  totalCommission += fee;
+                });
+              }
+            }
+          });
+
+          return totalCommission;
+        },
+
+        getEmployeeCommissionBreakdownForPeriod(empId) {
+          if (!empId) return [];
+          const map = {};
+
+          this.orders.forEach(o => {
+            if (this.isOrderInSelectedPeriod(o.createdAt)) {
+              if (o.items && Array.isArray(o.items)) {
+                o.items.forEach(item => {
+                  if (item.technicianId === empId && item.selectedServices) {
+                    item.selectedServices.forEach(s => {
+                      const fee = s.commissionFee !== undefined ? s.commissionFee : 10000;
+                      if (!map[s.name]) {
+                        map[s.name] = { serviceName: s.name, count: 0, fee: fee, total: 0 };
+                      }
+                      map[s.name].count += 1;
+                      map[s.name].total += fee;
+                    });
+                  }
+                });
+              }
+            }
+          });
+
+          return Object.values(map);
+        },
+
+        calculateTotalCommissionAllForPeriod() {
+          return this.employees.reduce((sum, e) => sum + this.getEmployeeCommissionForPeriod(e.id), 0);
+        },
+
+        calculateTotalPayrollEstimateForPeriod() {
+          return this.employees.reduce((sum, e) => sum + (e.baseSalary || 0) + this.getEmployeeCommissionForPeriod(e.id), 0);
+        },
+
+        isEmployeePaidForSelectedPeriod(empId) {
+          if (!empId) return false;
+          const targetPeriod = `${this.payrollYear}-${this.payrollMonth}`;
+          
+          return this.ledger.some(l => {
+            const isPayroll = l.type === 'PAYROLL';
+            const matchesEmp = l.employeeId === empId || (l.description && l.description.includes(empId));
+            const matchesPeriodTag = l.period === targetPeriod || (l.description && l.description.includes(targetPeriod));
+            return isPayroll && matchesEmp && matchesPeriodTag;
+          });
+        },
+
+        openPayrollSlipModal(emp) {
+          this.activePayrollEmployee = emp;
+          this.payrollPayAccount = 'Cash';
+          this.showPayrollModal = true;
+        },
+
+        processPayrollPayment() {
+          if (!this.activePayrollEmployee) return;
+
+          const emp = this.activePayrollEmployee;
+          const comm = this.getEmployeeCommissionForPeriod(emp.id);
+          const totalPaid = (emp.baseSalary || 0) + comm;
+          const periodTag = `${this.payrollYear}-${this.payrollMonth}`;
+
+          if (confirm(`Proses pembayaran gaji untuk ${emp.name} sebesar ${this.formatRupiah(totalPaid)} periode ${periodTag} via akun ${this.payrollPayAccount}?`)) {
+            this.ledger.unshift({
+              id: 'TRX-' + Date.now(),
+              type: 'PAYROLL',
+              employeeId: emp.id,
+              period: periodTag,
+              description: `Penggajian (${emp.name} - ${emp.role}) - Periode ${periodTag} [${emp.id}]`,
+              amount: totalPaid,
+              method: this.payrollPayAccount,
+              proofImage: null,
+              createdAt: new Date().toISOString()
+            });
+
+            alert(`Gaji & Bagi Hasil untuk ${emp.name} sebesar ${this.formatRupiah(totalPaid)} periode ${periodTag} berhasil dibukukan!`);
+            this.showPayrollModal = false;
+            this.$nextTick(() => lucide.createIcons());
+          }
+        },
+
+        payOffDebt(orderId) {
+          const order = this.orders.find(o => o.id === orderId);
+          if (order && order.remaining > 0) {
+            const method = this.unpaidPayMethod[orderId] || 'Cash';
+            const paidAmount = order.remaining;
+            
+            order.payments.push({
+              amount: paidAmount,
+              method: method,
+              date: new Date().toISOString()
+            });
+
+            order.dpAmount += paidAmount;
+            order.remaining = 0;
+            alert(`Pelunasan sebesar ${this.formatRupiah(paidAmount)} untuk ${order.id} berhasil dicatat via ${method}!`);
+          }
+        },
+
+        calculatePnL() {
+          const start = new Date(this.reportStartDate);
+          const end = new Date(this.reportEndDate);
+          end.setHours(23, 59, 59);
+
+          let netRevenue = 0;
+          let totalHpp = 0;
+          let totalCommission = 0;
+
+          this.orders.forEach(o => {
+            const d = new Date(o.createdAt);
+            if (d >= start && d <= end) {
+              netRevenue += Number(o.totalAmount || 0);
+
+              if (o.items && Array.isArray(o.items)) {
+                o.items.forEach(item => {
+                  if (item.selectedServices) {
+                    item.selectedServices.forEach(s => {
+                      totalHpp += this.calculateServiceTotalHpp(s);
+                      totalCommission += (s.commissionFee !== undefined ? Number(s.commissionFee) : 10000);
+                    });
+                  }
+                });
+              }
+            }
+          });
+
+          let opex = 0;
+          let baseSalaryExpense = 0;
+          let extraIncome = 0;
+
+          this.ledger.forEach(l => {
+            const d = new Date(l.createdAt);
+            if (d >= start && d <= end) {
+              if (l.type === 'EXPENSE') opex += Number(l.amount || 0);
+              if (l.type === 'INCOME') extraIncome += Number(l.amount || 0);
+              if (l.type === 'PAYROLL') baseSalaryExpense += Number(l.amount || 0);
+            }
+          });
+
+          const totalRevenue = netRevenue + extraIncome;
+          const grossProfit = totalRevenue - totalHpp - totalCommission;
+          const netProfit = grossProfit - opex - baseSalaryExpense;
+
+          return {
+            netRevenue: totalRevenue,
+            totalHpp,
+            totalCommission,
+            grossProfit,
+            opex,
+            baseSalaryExpense,
+            netProfit
+          };
+        },
+
+        calculateTotalWithdrawal() {
+          return this.ledger
+            .filter(l => l.type === 'WITHDRAWAL')
+            .reduce((sum, l) => sum + Number(l.amount || 0), 0);
+        },
+
+        calculateRevenueByMethod(method) {
+          let total = 0;
+          this.orders.forEach(o => {
+            if (o.payments) {
+              o.payments.forEach(p => {
+                if (p.method === method) total += p.amount;
+              });
+            }
+          });
+
+          if (method === 'Cash') {
+            const ledgerIncomeCash = this.ledger.filter(l => l.type === 'INCOME' && l.method === 'Cash').reduce((s, l) => s + l.amount, 0);
+            const ledgerExpenseCash = this.ledger.filter(l => (l.type === 'EXPENSE' || l.type === 'WITHDRAWAL' || l.type === 'PAYROLL') && l.method === 'Cash').reduce((s, l) => s + l.amount, 0);
+            const transferOutCash = this.ledger.filter(l => l.type === 'TRANSFER' && l.method === 'Cash').reduce((s, l) => s + l.amount, 0);
+
+            total += ledgerIncomeCash - ledgerExpenseCash - transferOutCash;
+          }
+          return total;
+        },
+
+        calculateNonCashRevenue() {
+          let nonCash = this.calculateRevenueByMethod('QRIS') + this.calculateRevenueByMethod('Transfer Bank') + this.calculateRevenueByMethod('E-Wallet');
+          const transferInNonCash = this.ledger.filter(l => l.type === 'TRANSFER' && l.method === 'Cash').reduce((s, l) => s + l.amount, 0);
+          return nonCash + transferInNonCash;
+        },
+
+        addLedgerEntry() {
+          if (!this.ledgerForm.description || !this.ledgerForm.amount) {
+            alert('Lengkapi deskripsi dan nominal transaksi!');
+            return;
+          }
+
+          if ((this.ledgerForm.type === 'EXPENSE' || this.ledgerForm.type === 'WITHDRAWAL' || this.ledgerForm.type === 'PAYROLL' || this.ledgerForm.type === 'TRANSFER') && !this.ledgerForm.proofImage) {
+            alert('Wajib melampirkan Foto Nota/Bukti Fisik!');
+            return;
+          }
+
+          this.ledger.unshift({
+            id: 'TRX-' + Date.now(),
+            type: this.ledgerForm.type,
+            description: this.ledgerForm.description,
+            amount: this.ledgerForm.amount,
+            method: this.ledgerForm.method,
+            proofImage: this.ledgerForm.proofImage,
+            createdAt: new Date().toISOString()
+          });
+
+          this.ledgerForm = { type: 'EXPENSE', description: '', amount: null, method: 'Cash', proofImage: null };
+          if (this.currentTab === 'finance') this.renderFinancialChart();
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        deleteLedgerEntry(entryId) {
+          if (confirm('Apakah Anda yakin ingin menghapus catatan transaksi ini?')) {
+            this.ledger = this.ledger.filter(l => l.id !== entryId);
+            if (this.currentTab === 'finance') this.renderFinancialChart();
+          }
+        },
+
+        previewImageModal(src) {
+          this.modalImageSrc = src;
+          this.showImageModal = true;
+        },
+
+        renderFinancialChart() {
+          const ctx = document.getElementById('financialChartCanvas')?.getContext('2d');
+          if (!ctx) return;
+
+          const start = new Date(this.reportStartDate);
+          const end = new Date(this.reportEndDate);
+          end.setHours(23, 59, 59);
+
+          const labels = [];
+          const revenueData = [];
+          const costData = [];
+
+          let curr = new Date(start);
+          while (curr <= end) {
+            const dateStr = curr.toISOString().slice(0, 10);
+            labels.push(this.formatShortDate(dateStr));
+
+            let dayRevenue = 0;
+            let dayCost = 0;
+
+            this.orders.forEach(o => {
+              if (o.createdAt && o.createdAt.slice(0, 10) === dateStr) {
+                dayRevenue += o.totalAmount;
+                if (o.items && Array.isArray(o.items)) {
+                  o.items.forEach(item => {
+                    if (item.selectedServices) {
+                      item.selectedServices.forEach(s => {
+                        dayCost += this.calculateServiceTotalHpp(s) + (s.commissionFee || 10000);
+                      });
+                    }
+                  });
+                }
+              }
+            });
+
+            this.ledger.forEach(l => {
+              if (l.createdAt && l.createdAt.slice(0, 10) === dateStr) {
+                if (l.type === 'INCOME') dayRevenue += l.amount;
+                if (l.type === 'EXPENSE' || l.type === 'PAYROLL') dayCost += l.amount;
+              }
+            });
+
+            revenueData.push(dayRevenue);
+            costData.push(dayCost);
+
+            curr.setDate(curr.getDate() + 1);
+          }
+
+          if (this.chartInstance) this.chartInstance.destroy();
+
+          this.chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [
+                { label: 'Pendapatan (Revenue)', data: revenueData, backgroundColor: '#34C759', borderRadius: 8 },
+                { label: 'Total HPP, Komisi & OPEX', data: costData, backgroundColor: '#FF3B30', borderRadius: 8 }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { labels: { color: '#515154', font: { family: 'Inter', weight: '600' } } } },
+              scales: {
+                x: { ticks: { color: '#86868B' }, grid: { display: false } },
+                y: { ticks: { color: '#86868B' }, grid: { color: 'rgba(0,0,0,0.05)' } }
+              }
+            }
+          });
+        },
+
+        get filteredReportEntries() {
+          const start = new Date(this.reportStartDate);
+          const end = new Date(this.reportEndDate);
+          end.setHours(23, 59, 59);
+
+          const list = [];
+          
+          this.orders.forEach(o => {
+            if (o.payments) {
+              o.payments.forEach(p => {
+                const d = new Date(p.date);
+                if (d >= start && d <= end) {
+                  list.push({
+                    id: o.id + '_' + p.date,
+                    createdAt: p.date,
+                    type: 'INCOME (ORDER)',
+                    description: `Order ${o.id} - ${o.customerName}`,
+                    method: p.method,
+                    amount: p.amount
+                  });
+                }
+              });
+            }
+          });
+
+          this.ledger.forEach(l => {
+            const d = new Date(l.createdAt);
+            if (d >= start && d <= end) {
+              list.push(l);
+            }
+          });
+
+          list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          return list;
+        },
+
+        generatePDFReport() {
+          const pnl = this.calculatePnL();
+          this.pdfSummary = pnl;
+
+          if (this.chartInstance) {
+            document.getElementById('pdfChartImage').src = this.chartInstance.toBase64Image();
+          }
+
+          this.$nextTick(() => {
+            const element = document.getElementById('pdfReportContainer');
+            element.classList.remove('hidden');
+
+            const opt = {
+              margin: 0.3,
+              filename: `Laporan_Laba_Rugi_ShoeClean_${this.reportStartDate}_sd_${this.reportEndDate}.pdf`,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2 },
+              jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+              element.classList.add('hidden');
+            });
+          });
+        },
+
+        addService() {
+          if (!this.newService.name || !this.newService.price) {
+            alert('Lengkapi nama dan harga layanan!');
+            return;
+          }
+          this.availableServices.push({
+            id: 'srv_' + Date.now(),
+            name: this.newService.name,
+            desc: this.newService.desc || '-',
+            price: this.newService.price,
+            commissionFee: this.newService.commissionFee || 10000,
+            hpp: JSON.parse(JSON.stringify(this.newService.hpp))
+          });
+          this.newService = { 
+            name: '', 
+            desc: '', 
+            price: 0, 
+            commissionFee: 10000,
+            hpp: { soap: 2000, perfume: 1000, packaging: 1500, customCosts: [] }
+          };
+        },
+
+        deleteService(idx) {
+          this.availableServices.splice(idx, 1);
+        },
+
+        addChecklist() {
+          if (!this.newChecklistLabel) return;
+          this.inspectionChecklist.push({
+            id: 'chk_' + Date.now(),
+            label: this.newChecklistLabel
+          });
+          this.newChecklistLabel = '';
+        },
+
+        deleteChecklist(idx) {
+          this.inspectionChecklist.splice(idx, 1);
+        },
+
+        updateCRM(order) {
+          const targetPhone = this.cleanPhone(order.customerPhone);
+          let cust = this.customers.find(c => this.cleanPhone(c.phone) === targetPhone);
+          
+          if (!cust) {
+            cust = {
+              name: order.customerName,
+              phone: order.customerPhone,
+              address: order.customerAddress,
+              totalOrders: 0,
+              lifetimeValue: 0,
+              points: 0,
+              tag: 'New Customer',
+              lastOrderDate: order.createdAt
+            };
+            this.customers.push(cust);
+          } else {
+            cust.name = order.customerName || cust.name;
+            if (order.customerAddress) cust.address = order.customerAddress;
+          }
+
+          cust.totalOrders += 1;
+          cust.lifetimeValue += order.totalAmount;
+          cust.points += Math.floor(order.totalAmount / 10000);
+          cust.lastOrderDate = order.createdAt;
+
+          if (cust.lifetimeValue >= 1000000) {
+            cust.tag = 'VIP Customer';
+          } else if (cust.totalOrders > 3) {
+            cust.tag = 'Regular';
+          } else {
+            cust.tag = 'New Customer';
+          }
+        },
+
+        resetForm() {
+          this.orderForm = {
+            customerPhone: '', customerName: '', customerAddress: '',
+            items: [
+              {
+                shoeBrand: '', shoeModel: '', shoeColor: '', shoeSize: '',
+                technicianId: '', conditions: [], photoBefore: null, photoAfter: null, selectedServices: []
+              }
+            ],
+            discount: 0, paymentMethod: 'Cash', dpAmount: 0
+          };
+          this.customerMode = 'existing';
+          this.foundCustomer = false;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        get activeOrdersCount() {
+          return this.orders.filter(o => o.status !== 'Completed/Picked Up').length;
+        },
+
+        getOrdersByStatus(status) {
+          return this.orders.filter(o => {
+            const matchesStatus = o.status === status;
+            const q = this.kanbanSearch.toLowerCase();
+            const matchesSearch = !q || o.id.toLowerCase().includes(q) || o.customerName.toLowerCase().includes(q) || (o.shoeBrand && o.shoeBrand.toLowerCase().includes(q));
+            return matchesStatus && matchesSearch;
+          });
+        },
+
+        updateOrderStatus(orderId, newStatus) {
+          const order = this.orders.find(o => o.id === orderId);
+          if (order) {
+            order.status = newStatus;
+          }
+        },
+
+        get filteredCustomers() {
+          const q = this.crmSearch.toLowerCase();
+          return this.customers.filter(c => !q || c.name.toLowerCase().includes(q) || c.phone.includes(q));
+        },
+
+        getCustomerTagClass(tag) {
+          switch(tag) {
+            case 'VIP Customer': return 'bg-[#FF9500]/15 text-[#C97600]';
+            case 'Regular': return 'bg-[#0071E3]/10 text-[#0071E3]';
+            case 'Dormant/Inactive': return 'bg-[#FF3B30]/10 text-[#FF3B30]';
+            default: return 'bg-[#F5F5F7] text-[#515154]';
+          }
+        },
+
+        sendWAMessage(order) {
+          const text = `Halo Kak *${order.customerName}*,
+
+Status pengerjaan sepatu Anda dengan Nota *${order.id}* saat ini adalah: *${order.status.toUpperCase()}*.
+
+Sisa Pelunasan: *${this.formatRupiah(order.remaining)}*
+
+Terima kasih telah mempercayakan perawatan sepatu Anda di *ShoeClean Workshop*!`;
+          window.open(`https://wa.me/${this.cleanPhone(order.customerPhone)}?text=${encodeURIComponent(text)}`, '_blank');
+        },
+
+        sendRetentionWA(cust) {
+          const text = `Halo Kak *${cust.name}*!
+
+Sudah lama nih sepatu kesayangan kamu belum didetox lagi di *ShoeClean Workshop*. Kamu punya akumulasi *${cust.points} Poin Loyalty* lho!
+
+Dapatkan diskon khusus treatment minggu ini. Yuk hubungi kami untuk booking slot cuci!`;
+          window.open(`https://wa.me/${this.cleanPhone(cust.phone)}?text=${encodeURIComponent(text)}`, '_blank');
+        },
+
+        cleanPhone(phone) {
+          if (!phone) return '';
+          let p = phone.replace(/[^0-9]/g, '');
+          if (p.startsWith('0')) p = '62' + p.slice(1);
+          return p;
+        },
+
+        openReceiptModal(order) {
+          this.activeReceipt = order;
+          this.showReceiptModal = true;
+        },
+
+        calculateTotalExpense() {
+          return this.ledger.filter(l => l.type === 'EXPENSE' || l.type === 'WITHDRAWAL' || l.type === 'PAYROLL').reduce((sum, l) => sum + l.amount, 0);
+        },
+
+        calculateUnpaid() {
+          return this.orders.reduce((sum, o) => sum + o.remaining, 0);
+        },
+
+        get unpaidOrdersList() {
+          const q = this.unpaidSearch.toLowerCase().trim();
+          return this.orders.filter(o => {
+            const isUnpaid = o.remaining > 0;
+            const matchesSearch = !q || 
+              o.id.toLowerCase().includes(q) || 
+              o.customerName.toLowerCase().includes(q);
+            return isUnpaid && matchesSearch;
+          });
+        },
+
+        formatRupiah(val) {
+          return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val || 0);
+        },
+
+        formatShortDate(isoStr) {
+          if (!isoStr) return '';
+          const d = new Date(isoStr);
+          return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+        },
+
+        saveToStorage() {
+          localStorage.setItem('shoeclean_orders', JSON.stringify(this.orders));
+          localStorage.setItem('shoeclean_customers', JSON.stringify(this.customers));
+          localStorage.setItem('shoeclean_services', JSON.stringify(this.availableServices));
+          localStorage.setItem('shoeclean_checklist', JSON.stringify(this.inspectionChecklist));
+          localStorage.setItem('shoeclean_employees', JSON.stringify(this.employees));
+          localStorage.setItem('shoeclean_ledger', JSON.stringify(this.ledger));
+          localStorage.setItem('shoeclean_next_ord', this.nextOrderNumber);
+        },
+
+        loadFromStorage() {
+          const o = localStorage.getItem('shoeclean_orders');
+          const c = localStorage.getItem('shoeclean_customers');
+          const s = localStorage.getItem('shoeclean_services');
+          const ch = localStorage.getItem('shoeclean_checklist');
+          const emp = localStorage.getItem('shoeclean_employees');
+          const l = localStorage.getItem('shoeclean_ledger');
+          const n = localStorage.getItem('shoeclean_next_ord');
+          if (o) this.orders = JSON.parse(o);
+          if (c) this.customers = JSON.parse(c);
+          if (s) this.availableServices = JSON.parse(s);
+          if (ch) this.inspectionChecklist = JSON.parse(ch);
+          if (emp) this.employees = JSON.parse(emp);
+          if (l) this.ledger = JSON.parse(l);
+          if (n) this.nextOrderNumber = parseInt(n);
+        },
+
+        exportData() {
+          const data = {
+            orders: this.orders,
+            customers: this.customers,
+            services: this.availableServices,
+            checklist: this.inspectionChecklist,
+            employees: this.employees,
+            ledger: this.ledger,
+            nextOrderNumber: this.nextOrderNumber
+          };
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `shoeclean_backup_${new Date().toISOString().slice(0,10)}.json`;
+          a.click();
+        },
+
+        importData(evt) {
+          const file = evt.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const data = JSON.parse(e.target.result);
+              if (data.orders && data.customers) {
+                this.orders = data.orders;
+                this.customers = data.customers;
+                if (data.services) this.availableServices = data.services;
+                if (data.checklist) this.inspectionChecklist = data.checklist;
+                if (data.employees) this.employees = data.employees;
+                if (data.ledger) this.ledger = data.ledger;
+                this.nextOrderNumber = data.nextOrderNumber || 101;
+                alert('Data master, order, karyawan & ledger berhasil diimpor!');
+              }
+            };
+            reader.readAsText(file);
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>
